@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ subscription.name }} - Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-sync me-2"></i>Subscription Details
+        </h1>
+        <p class="text-muted">View subscription information</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'subscriptions:subscription_list' %}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+        <a href="{% url 'subscriptions:subscription_update' subscription.pk %}" class="btn btn-warning me-2">
+            <i class="fas fa-edit me-2"></i>Edit
+        </a>
+        <a href="{% url 'subscriptions:subscription_delete' subscription.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash me-2"></i>Delete
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <!-- Subscription Details Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Subscription Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Name:</dt>
+                            <dd class="col-sm-8">{{ subscription.name }}</dd>
+                            
+                            <dt class="col-sm-4">Amount:</dt>
+                            <dd class="col-sm-8">
+                                <span class="text-primary fw-bold fs-5">£{{ subscription.amount|floatformat:2 }}</span>
+                            </dd>
+                            
+
+                            
+                            <dt class="col-sm-4">Billing Cycle:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-info">{{ subscription.get_billing_cycle_display }}</span>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Status:</dt>
+                            <dd class="col-sm-8">
+                                {% if subscription.status == 'ACTIVE' %}
+                                    <span class="badge bg-success">{{ subscription.get_status_display }}</span>
+                                {% elif subscription.status == 'INACTIVE' %}
+                                    <span class="badge bg-warning">{{ subscription.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ subscription.get_status_display }}</span>
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-4">Start Date:</dt>
+                            <dd class="col-sm-8">{{ subscription.start_date|date:"F j, Y" }}</dd>
+                            
+                            <dt class="col-sm-4">Next Billing:</dt>
+                            <dd class="col-sm-8">
+                                {% if subscription.next_billing_date %}
+                                    <span class="{% if subscription.next_billing_date < today %}text-danger{% endif %}">
+                                        {{ subscription.next_billing_date|date:"F j, Y" }}
+                                    </span>
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-4">Auto-renew:</dt>
+                            <dd class="col-sm-8">
+                                {% if subscription.auto_renew %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+                
+                {% if subscription.end_date %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dl class="row">
+                            <dt class="col-sm-2">End Date:</dt>
+                            <dd class="col-sm-10">{{ subscription.end_date|date:"F j, Y" }}</dd>
+                        </dl>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if subscription.description %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>Description:</dt>
+                        <dd>{{ subscription.description|linebreaks }}</dd>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if subscription.notes %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>Notes:</dt>
+                        <dd>{{ subscription.notes|linebreaks }}</dd>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dl class="row">
+                            <dt class="col-sm-2">Created:</dt>
+                            <dd class="col-sm-10">{{ subscription.created_at|date:"F j, Y g:i A" }}</dd>
+                            
+                            <dt class="col-sm-2">Last Updated:</dt>
+                            <dd class="col-sm-10">{{ subscription.updated_at|date:"F j, Y g:i A" }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

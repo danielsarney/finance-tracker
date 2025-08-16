@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Subscriptions - Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-sync me-2"></i>Subscriptions
+        </h1>
+        <p class="text-muted">Track and manage your recurring subscriptions</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'subscriptions:subscription_create' %}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Add Subscription
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for code, name in statuses %}
+                        <option value="{{ code }}" {% if code == selected_status %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+                <a href="{% url 'subscriptions:subscription_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Upcoming Renewals -->
+{% if upcoming_renewals %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-calendar-alt me-2"></i>Upcoming Renewals
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for subscription in upcoming_renewals %}
+                <div class="col-md-6 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ subscription.name }}</h6>
+                            <p class="card-text text-muted">{{ subscription.description|default:"No description" }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-info">£{{ subscription.amount|floatformat:2 }}</span>
+                                <small class="text-muted">Due: {{ subscription.next_billing_date }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Subscriptions List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Subscription List</h5>
+    </div>
+    <div class="card-body">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Billing Cycle</th>
+                            <th>Status</th>
+                            <th>Next Billing</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subscription in page_obj %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'subscriptions:subscription_detail' subscription.pk %}" class="text-decoration-none">
+                                        {{ subscription.name }}
+                                    </a>
+                                    {% if subscription.description %}
+                                        <br><small class="text-muted">{{ subscription.description|truncatechars:50 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-info fw-bold">£{{ subscription.amount|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ subscription.get_billing_cycle_display }}</span>
+                                </td>
+                                <td>
+                                    {% if subscription.status == 'ACTIVE' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif subscription.status == 'INACTIVE' %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ subscription.next_billing_date }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'subscriptions:subscription_detail' subscription.pk %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'subscriptions:subscription_update' subscription.pk %}" class="btn btn-outline-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'subscriptions:subscription_delete' subscription.pk %}" class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <nav aria-label="Subscription pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if selected_status %}&status={{ selected_status }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-sync fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No subscriptions found</h5>
+                <p class="text-muted">Start tracking your subscriptions by adding your first subscription.</p>
+                <a href="{% url 'subscriptions:subscription_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Add First Subscription
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

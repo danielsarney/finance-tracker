@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-tachometer-alt me-2"></i>Financial Dashboard
+        </h1>
+        <p class="text-muted">{{ current_month }}/{{ current_year }} Overview</p>
+    </div>
+</div>
+
+<!-- Financial Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Income</h6>
+                        <h3 class="mb-0">£{{ total_income|floatformat:2 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-pound-sign fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Expenses</h6>
+                        <h3 class="mb-0">£{{ total_expenses|floatformat:2 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-credit-card fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card {% if net_income >= 0 %}bg-primary{% else %}bg-warning{% endif %} text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Net Income</h6>
+                        <h3 class="mb-0">£{{ net_income|floatformat:2 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-line fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Subscriptions</h6>
+                        <h3 class="mb-0">£{{ total_subscription_cost|floatformat:2 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-sync fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <a href="{% url 'expenses:expense_create' %}" class="btn btn-outline-danger w-100">
+                            <i class="fas fa-plus me-2"></i>Add Expense
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <a href="{% url 'income:income_create' %}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-plus me-2"></i>Add Income
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <a href="{% url 'subscriptions:subscription_create' %}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-plus me-2"></i>Add Subscription
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions and Upcoming Renewals -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Transactions
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6 class="text-success mb-3">Recent Income</h6>
+                {% if recent_income %}
+                    {% for income in recent_income %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ income.description }}</strong>
+                                <br><small class="text-muted">{{ income.date }}</small>
+                            </div>
+                            <span class="badge bg-success">£{{ income.amount|floatformat:2 }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent income</p>
+                {% endif %}
+                
+                <hr>
+                
+                <h6 class="text-danger mb-3">Recent Expenses</h6>
+                {% if recent_expenses %}
+                    {% for expense in recent_expenses %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ expense.description }}</strong>
+                                <br><small class="text-muted">{{ expense.date }}</small>
+                            </div>
+                            <span class="badge bg-danger">£{{ expense.amount|floatformat:2 }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent expenses</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>Upcoming Renewals
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_renewals %}
+                    {% for subscription in upcoming_renewals %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ subscription.name }}</strong>
+                                <br><small class="text-muted">Due: {{ subscription.next_billing_date }}</small>
+                            </div>
+                            <span class="badge bg-info">£{{ subscription.amount|floatformat:2 }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No upcoming renewals</p>
+                {% endif %}
+                
+                <hr>
+                
+                <h6 class="text-warning mb-3">Pending Work Payments</h6>
+                {% if pending_work %}
+                    {% for work in pending_work %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ work.company_client }}</strong>
+                                <br><small class="text-muted">{{ work.work_date }}</small>
+                            </div>
+                            <span class="badge bg-warning">£{{ work.total_amount|floatformat:2 }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No pending payments</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
