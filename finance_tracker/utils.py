@@ -172,6 +172,10 @@ def paginate_queryset(queryset, page_number, per_page=20):
     """
     from django.core.paginator import Paginator
     
+    # Ensure queryset is ordered for consistent pagination
+    if not queryset.ordered:
+        queryset = queryset.order_by('-date', '-created_at')
+    
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page_number)
     

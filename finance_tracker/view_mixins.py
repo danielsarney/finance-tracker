@@ -23,6 +23,10 @@ class BaseCRUDMixin(BaseListViewMixin):
         # Apply filters
         filtered_queryset = self.get_filtered_queryset(queryset, request)
         
+        # Ensure queryset is ordered for consistent pagination
+        if not filtered_queryset.ordered:
+            filtered_queryset = filtered_queryset.order_by('-date', '-created_at')
+        
         # Pagination
         paginator = Paginator(filtered_queryset, 20)
         page_number = request.GET.get('page')

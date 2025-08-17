@@ -16,7 +16,6 @@ class UserFactory(DjangoModelFactory):
     password = factory.PostGenerationMethodCall('set_password', 'testpass123')
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
-    is_active = True
 
 
 class CategoryFactory(DjangoModelFactory):
@@ -24,7 +23,7 @@ class CategoryFactory(DjangoModelFactory):
     class Meta:
         model = 'categories.Category'
     
-    name = factory.Faker('word')
+    name = factory.Sequence(lambda n: f'category_{n}')
     category_type = factory.Iterator(['expense', 'income', 'subscription', 'work'])
     color = factory.Faker('hex_color')
     icon = factory.Iterator([
@@ -46,7 +45,6 @@ class ExpenseFactory(DjangoModelFactory):
     
     user = factory.SubFactory(UserFactory)
     amount = factory.Faker('pydecimal', left_digits=3, right_digits=2, positive=True)
-    description = factory.Faker('sentence', nb_words=4)
     date = factory.Faker('date_between', start_date='-1y', end_date='today')
     category = factory.SubFactory(CategoryFactory, category_type='expense')
 
@@ -58,7 +56,6 @@ class IncomeFactory(DjangoModelFactory):
     
     user = factory.SubFactory(UserFactory)
     amount = factory.Faker('pydecimal', left_digits=4, right_digits=2, positive=True)
-    description = factory.Faker('sentence', nb_words=4)
     date = factory.Faker('date_between', start_date='-1y', end_date='today')
     category = factory.SubFactory(CategoryFactory, category_type='income')
     payer = factory.Faker('company')
@@ -73,7 +70,6 @@ class SubscriptionFactory(DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     name = factory.Faker('company')
     amount = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
-    description = factory.Faker('sentence', nb_words=4)
     date = factory.Faker('date_between', start_date='-6m', end_date='today')
     billing_cycle = factory.Iterator(['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'])
     start_date = factory.Faker('date_between', start_date='-6m', end_date='today')
