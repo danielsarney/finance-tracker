@@ -6,7 +6,7 @@ from categories.models import Category
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        fields = ['amount', 'payee', 'date', 'category', 'is_taxable', 'notes']
+        fields = ['amount', 'payee', 'date', 'category']
         widgets = {
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'payee': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
