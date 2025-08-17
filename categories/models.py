@@ -25,5 +25,10 @@ class Category(models.Model):
     def get_icon_class(self):
         """Return the full FontAwesome class for the icon"""
         if self.icon:
-            return f"fas {self.icon}" if not self.icon.startswith('fa-') else f"fas {self.icon}"
+            if self.icon.startswith('fas '):
+                return self.icon
+            elif self.icon.startswith('fa-'):
+                return f"fas {self.icon}"
+            else:
+                return f"fas {self.icon}"
         return "fas fa-tag"  # Default icon
