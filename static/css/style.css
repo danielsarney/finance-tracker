@@ -192,3 +192,52 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+/* Category color utilities */
+.category-icon {
+    font-size: 2rem;
+}
+
+.category-color-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.category-badge {
+    color: white;
+}
+
+/* Dynamic category colors - these will be overridden by inline styles when needed */
+.category-color-primary {
+    color: #0d6efd;
+}
+
+.category-color-success {
+    color: #198754;
+}
+
+.category-color-warning {
+    color: #ffc107;
+}
+
+.category-color-danger {
+    color: #dc3545;
+}
+
+.category-color-info {
+    color: #0dcaf0;
+}
+
+.category-color-secondary {
+    color: #6c757d;
+}
+
+.category-color-light {
+    color: #f8f9fa;
+}
+
+.category-color-dark {
+    color: #212529;
+}

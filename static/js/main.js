@@ -1,4 +1,18 @@
 document.addEventListener('DOMContentLoaded', function() {
+    initializeBootstrapComponents();
+    initializeFormValidation();
+    initializeWorkLogCalculator();
+    initializeDeleteConfirmations();
+    initializeFilters();
+    initializeSortableTables();
+    initializeCharts();
+    initializeMobileMenu();
+    initializeSmoothScrolling();
+    initializeFormAutoSave();
+});
+
+// Bootstrap Components Initialization
+function initializeBootstrapComponents() {
     // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -19,8 +33,10 @@ document.addEventListener('DOMContentLoaded', function() {
             bsAlert.close();
         }, 5000);
     });
+}
 
-    // Form validation enhancement
+// Form Validation
+function initializeFormValidation() {
     var forms = document.querySelectorAll('.needs-validation');
     forms.forEach(function(form) {
         form.addEventListener('submit', function(event) {
@@ -31,26 +47,10 @@ document.addEventListener('DOMContentLoaded', function() {
             form.classList.add('was-validated');
         });
     });
+}
 
-    // Currency formatting
-    function formatCurrency(amount) {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD'
-        }).format(amount);
-    }
-
-    // Date formatting
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    }
-
-    // Auto-calculate total amount for work logs
+// Work Log Calculator
+function initializeWorkLogCalculator() {
     var hoursInput = document.querySelector('input[name="hours_worked"]');
     var rateInput = document.querySelector('input[name="hourly_rate"]');
     var totalInput = document.querySelector('input[name="total_amount"]');
@@ -66,8 +66,10 @@ document.addEventListener('DOMContentLoaded', function() {
         hoursInput.addEventListener('input', calculateTotal);
         rateInput.addEventListener('input', calculateTotal);
     }
+}
 
-    // Confirm delete actions
+// Delete Confirmations
+function initializeDeleteConfirmations() {
     var deleteButtons = document.querySelectorAll('.btn-delete');
     deleteButtons.forEach(function(button) {
         button.addEventListener('click', function(e) {
@@ -76,8 +78,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+}
 
-    // Filter functionality for lists
+// Filter Functionality
+function initializeFilters() {
     var filterInputs = document.querySelectorAll('.filter-input');
     filterInputs.forEach(function(input) {
         input.addEventListener('input', function() {
@@ -94,8 +98,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+}
 
-    // Sortable tables
+// Sortable Tables
+function initializeSortableTables() {
     var sortableHeaders = document.querySelectorAll('.sortable');
     sortableHeaders.forEach(function(header) {
         header.addEventListener('click', function() {
@@ -126,8 +132,10 @@ document.addEventListener('DOMContentLoaded', function() {
             rows.forEach(row => tbody.appendChild(row));
         });
     });
+}
 
-    // Chart initialization (if Chart.js is available)
+// Charts
+function initializeCharts() {
     if (typeof Chart !== 'undefined') {
         // Example chart for dashboard
         var ctx = document.getElementById('expenseChart');
@@ -160,8 +168,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+}
 
-    // Mobile menu toggle enhancement
+// Mobile Menu
+function initializeMobileMenu() {
     var navbarToggler = document.querySelector('.navbar-toggler');
     var navbarCollapse = document.querySelector('.navbar-collapse');
     
@@ -177,8 +187,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+}
 
-    // Smooth scrolling for anchor links
+// Smooth Scrolling
+function initializeSmoothScrolling() {
     var anchorLinks = document.querySelectorAll('a[href^="#"]');
     anchorLinks.forEach(function(link) {
         link.addEventListener('click', function(e) {
@@ -194,8 +206,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+}
 
-    // Auto-save form data to localStorage
+// Form Auto-save
+function initializeFormAutoSave() {
     var formInputs = document.querySelectorAll('form input, form textarea, form select');
     formInputs.forEach(function(input) {
         const formId = input.closest('form').id || 'default-form';
@@ -229,20 +243,33 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-});
+}
 
 // Utility functions
 window.FinanceTracker = {
-    formatCurrency: function(amount) {
+    formatCurrency: function(amount, currency = 'GBP') {
+        if (currency === 'GBP') {
+            return new Intl.NumberFormat('en-GB', {
+                style: 'currency',
+                currency: 'GBP'
+            }).format(amount);
+        }
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD'
+            currency: currency || 'USD'
         }).format(amount);
     },
     
-    formatDate: function(dateString) {
+    formatDate: function(dateString, format = 'short') {
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
+        if (format === 'long') {
+            return date.toLocaleDateString('en-GB', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        return date.toLocaleDateString('en-GB', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
@@ -258,12 +285,32 @@ window.FinanceTracker = {
         `;
         
         const container = document.querySelector('.container');
-        container.insertBefore(alertDiv, container.firstChild);
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alertDiv);
-            bsAlert.close();
-        }, 5000);
+        if (container) {
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alertDiv);
+                bsAlert.close();
+            }, 5000);
+        }
+    },
+    
+    // Add utility functions for common operations
+    debounce: function(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    },
+    
+    // Format numbers with proper decimal places
+    formatNumber: function(number, decimals = 2) {
+        return parseFloat(number).toFixed(decimals);
     }
 };

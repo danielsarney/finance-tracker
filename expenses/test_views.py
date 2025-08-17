@@ -21,7 +21,7 @@ class ExpenseViewsTestCase(TestCase):
         )
         
         self.category = Category.objects.create(
-            name='Test Food Category',
+            name='Food',
             category_type='expense',
             color='#FF0000',
             icon='fas fa-utensils'

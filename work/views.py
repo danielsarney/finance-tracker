@@ -1,44 +1,52 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.paginator import Paginator
 from django.db.models import Sum
-from django.utils import timezone
-from datetime import datetime
 from .models import WorkLog
 from .forms import WorkLogForm
+from finance_tracker.view_mixins import create_crud_views
+
+# Create CRUD views using the factory function
+worklog_list, worklog_create, worklog_update, worklog_delete, worklog_detail = create_crud_views(
+    model=WorkLog,
+    form_class=WorkLogForm,
+    template_name='work/worklog_form.html',
+    list_url_name='work:worklog_list',
+    success_message='Work log created successfully!'
+)
 
 @login_required
 def worklog_list(request):
-    worklogs = WorkLog.objects.filter(user=request.user)
+    """Custom worklog list view with additional context."""
+    from finance_tracker.view_mixins import BaseCRUDMixin
     
-    # Filtering
+    mixin = BaseCRUDMixin()
+    mixin.model = WorkLog  # Set the model explicitly
+    queryset = mixin.get_queryset(request)
+    
+    # Apply work-specific filters
     status = request.GET.get('status')
     if status:
-        worklogs = worklogs.filter(status=status)
+        queryset = queryset.filter(status=status)
     
-    # Date filtering
+    # Apply date filters
     month = request.GET.get('month')
     year = request.GET.get('year')
     
     if month:
-        worklogs = worklogs.filter(work_date__month=month)
+        queryset = queryset.filter(work_date__month=month)
     if year:
-        worklogs = worklogs.filter(work_date__year=int(year))
+        queryset = queryset.filter(work_date__year=int(year))
     
     # Pagination
-    paginator = Paginator(worklogs, 20)
+    from django.core.paginator import Paginator
+    paginator = Paginator(queryset, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Summary
-    total_hours = worklogs.aggregate(Sum('hours_worked'))['hours_worked__sum'] or 0
-    total_earnings = worklogs.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    pending_amount = worklogs.filter(status='PENDING').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    
-    # Generate years list for the filter - expanded range
-    current_year = timezone.now().year
-    years = list(range(2020, 2081))
+    # Add work-specific context
+    total_hours = queryset.aggregate(Sum('hours_worked'))['hours_worked__sum'] or 0
+    total_earnings = queryset.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    pending_amount = queryset.filter(status='PENDING').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     
     context = {
         'page_obj': page_obj,
@@ -49,50 +57,7 @@ def worklog_list(request):
         'selected_status': status,
         'selected_month': month,
         'selected_year': year,
-        'years': years,
+        'years': mixin.get_years_list(),
     }
+    
     return render(request, 'work/worklog_list.html', context)
-
-@login_required
-def worklog_create(request):
-    if request.method == 'POST':
-        form = WorkLogForm(request.POST)
-        if form.is_valid():
-            worklog = form.save(commit=False)
-            worklog.user = request.user
-            worklog.save()
-            messages.success(request, 'Work log created successfully!')
-            return redirect('work:worklog_list')
-    else:
-        form = WorkLogForm()
-    
-    return render(request, 'work/worklog_form.html', {'form': form, 'title': 'Add New Work Log'})
-
-@login_required
-def worklog_update(request, pk):
-    worklog = get_object_or_404(WorkLog, pk=pk, user=request.user)
-    if request.method == 'POST':
-        form = WorkLogForm(request.POST, instance=worklog)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Work log updated successfully!')
-            return redirect('work:worklog_list')
-    else:
-        form = WorkLogForm(instance=worklog)
-    
-    return render(request, 'work/worklog_form.html', {'form': form, 'title': 'Edit Work Log'})
-
-@login_required
-def worklog_delete(request, pk):
-    worklog = get_object_or_404(WorkLog, pk=pk, user=request.user)
-    if request.method == 'POST':
-        worklog.delete()
-        messages.success(request, 'Work log deleted successfully!')
-        return redirect('work:worklog_list')
-    
-    return render(request, 'work/worklog_confirm_delete.html', {'worklog': worklog})
-
-@login_required
-def worklog_detail(request, pk):
-    worklog = get_object_or_404(WorkLog, pk=pk, user=request.user)
-    return render(request, 'work/worklog_detail.html', {'worklog': worklog})

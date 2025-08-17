@@ -1,0 +1,16 @@
+{% comment %}
+Reusable summary card template fragment.
+Usage: {% include 'includes/summary_card.html' with title="Total Expenses" value=total_expenses icon="fas fa-credit-card" color_class="expense-card" %}
+{% endcomment %}
+
+<div class="col-md-3 mb-3">
+    <div class="card {{ color_class|default:'dashboard-card' }} h-100">
+        <div class="card-body text-center">
+            <div class="mb-2">
+                <i class="{{ icon }} fa-3x text-white-50"></i>
+            </div>
+            <h5 class="card-title text-white">{{ title }}</h5>
+            <h3 class="card-text text-white">{{ value|floatformat:2 }}</h3>
+        </div>
+    </div>
+</div>
