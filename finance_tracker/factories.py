@@ -62,6 +62,8 @@ class IncomeFactory(DjangoModelFactory):
     description = factory.Faker('sentence', nb_words=4)
     date = factory.Faker('date_between', start_date='-1y', end_date='today')
     category = factory.SubFactory(CategoryFactory, category_type='income')
+    payer = factory.Faker('company')
+    is_taxable = factory.Iterator([True, False])
 
 
 class SubscriptionFactory(DjangoModelFactory):

@@ -6,10 +6,9 @@ from categories.models import Category
 class IncomeForm(forms.ModelForm):
     class Meta:
         model = Income
-        fields = ['amount', 'description', 'payer', 'date', 'category', 'is_taxable']
+        fields = ['amount', 'payer', 'date', 'category', 'is_taxable']
         widgets = {
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-            'description': forms.TextInput(attrs={'class': 'form-control'}),
             'payer': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'category': forms.Select(attrs={'class': 'form-select', 'required': True}),
