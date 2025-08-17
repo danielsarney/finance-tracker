@@ -350,7 +350,7 @@ class AccountsURLsTest(TestCase):
     def test_register_url(self):
         """Test register URL pattern."""
         url = reverse('accounts:register')
-        self.assertEqual(url, '/register/')
+        self.assertEqual(url, '/accounts/register/')
         
         resolver = resolve(url)
         self.assertEqual(resolver.func.__name__, 'register')
@@ -359,7 +359,7 @@ class AccountsURLsTest(TestCase):
     def test_login_url(self):
         """Test login URL pattern."""
         url = reverse('accounts:login')
-        self.assertEqual(url, '/login/')
+        self.assertEqual(url, '/accounts/login/')
         
         resolver = resolve(url)
         self.assertEqual(resolver.func.__name__, 'user_login')
@@ -368,7 +368,7 @@ class AccountsURLsTest(TestCase):
     def test_logout_url(self):
         """Test logout URL pattern."""
         url = reverse('accounts:logout')
-        self.assertEqual(url, '/logout/')
+        self.assertEqual(url, '/accounts/logout/')
         
         resolver = resolve(url)
         self.assertEqual(resolver.func.__name__, 'user_logout')
