@@ -1,7 +1,6 @@
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.auth.models import User
-from django.utils import timezone
 from decimal import Decimal
 from datetime import date, timedelta
 import random
@@ -89,14 +88,10 @@ class WorkLogFactory(DjangoModelFactory):
     
     user = factory.SubFactory(UserFactory)
     company_client = factory.Faker('company')
-    hours_worked = factory.Faker('pydecimal', left_digits=1, right_digits=1, positive=True, min_value=0.5, max_value=12.0)
-    hourly_rate = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
+    hours_worked = factory.Iterator([Decimal('4.0'), Decimal('8.0'), Decimal('6.5'), Decimal('10.0')])
+    hourly_rate = factory.Iterator([Decimal('25.00'), Decimal('30.00'), Decimal('35.00'), Decimal('40.00')])
     work_date = factory.Faker('date_between', start_date='-1y', end_date='today')
     status = factory.Iterator(['PENDING', 'INVOICED', 'PAID'])
-
-
-# UserProfileFactory removed - no longer needed
-
 
 # Specialized factories for testing scenarios
 class ExpenseWithSpecificDateFactory(ExpenseFactory):
