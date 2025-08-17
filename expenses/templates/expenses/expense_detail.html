@@ -34,9 +34,6 @@
                 <div class="row">
                     <div class="col-md-6">
                         <dl class="row">
-                            <dt class="col-sm-4">Description:</dt>
-                            <dd class="col-sm-8">{{ expense.description }}</dd>
-                            
                             <dt class="col-sm-4">Amount:</dt>
                             <dd class="col-sm-8">
                                 <span class="text-danger fw-bold fs-5">£{{ expense.amount|floatformat:2 }}</span>
@@ -49,6 +46,9 @@
                         <dl class="row">
                             <dt class="col-sm-4">Date:</dt>
                             <dd class="col-sm-8">{{ expense.date|date:"F j, Y" }}</dd>
+                            
+                            <dt class="col-sm-4">Description:</dt>
+                            <dd class="col-sm-8">{{ expense.description }}</dd>
                             
                             <dt class="col-sm-4">Payee:</dt>
                             <dd class="col-sm-8">{{ expense.payee|default:"Not specified" }}</dd>

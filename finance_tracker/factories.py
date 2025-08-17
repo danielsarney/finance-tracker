@@ -44,6 +44,7 @@ class ExpenseFactory(DjangoModelFactory):
         model = 'expenses.Expense'
     
     user = factory.SubFactory(UserFactory)
+    description = factory.Faker('sentence', nb_words=3)
     amount = factory.Faker('pydecimal', left_digits=3, right_digits=2, positive=True)
     date = factory.Faker('date_between', start_date='-1y', end_date='today')
     category = factory.SubFactory(CategoryFactory, category_type='expense')
@@ -55,6 +56,7 @@ class IncomeFactory(DjangoModelFactory):
         model = 'income.Income'
     
     user = factory.SubFactory(UserFactory)
+    description = factory.Faker('sentence', nb_words=3)
     amount = factory.Faker('pydecimal', left_digits=4, right_digits=2, positive=True)
     date = factory.Faker('date_between', start_date='-1y', end_date='today')
     category = factory.SubFactory(CategoryFactory, category_type='income')

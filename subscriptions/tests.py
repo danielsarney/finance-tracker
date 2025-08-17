@@ -29,16 +29,15 @@ class SubscriptionModelTest(TestCase):
         self.assertEqual(self.subscription.user, self.user)
         self.assertEqual(self.subscription.category, self.category)
         self.assertIsInstance(self.subscription.amount, Decimal)
-        self.assertIsInstance(self.subscription.description, str)
-        self.assertIsInstance(self.subscription.date, date)
         self.assertIsInstance(self.subscription.name, str)
+        self.assertIsInstance(self.subscription.date, date)
         self.assertIsInstance(self.subscription.billing_cycle, str)
         self.assertIsInstance(self.subscription.start_date, date)
         self.assertIsInstance(self.subscription.next_billing_date, date)
     
     def test_subscription_string_representation(self):
         """Test the string representation of a subscription."""
-        expected_str = f"{self.subscription.description} - £{self.subscription.amount} ({self.subscription.date})"
+        expected_str = f"{self.subscription.name} - £{self.subscription.amount} ({self.subscription.date})"
         self.assertEqual(str(self.subscription), expected_str)
     
     def test_subscription_ordering(self):
@@ -118,7 +117,6 @@ class SubscriptionModelTest(TestCase):
             category=self.category,
             name='Test Service',
             amount=Decimal('10.00'),
-            description='Test Description',
             date=date.today(),
             start_date=date.today()
         )

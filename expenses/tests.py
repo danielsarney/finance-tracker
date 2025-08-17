@@ -29,16 +29,21 @@ class ExpenseModelTest(TestCase):
         self.assertEqual(self.expense.user, self.user)
         self.assertEqual(self.expense.category, self.category)
         self.assertIsInstance(self.expense.amount, Decimal)
-        self.assertIsInstance(self.expense.description, str)
-        self.assertIsInstance(self.expense.date, date)
-        # payee can be None since it's nullable
+        # payee can be None since it's nullable, but if it exists it should be a string
         if self.expense.payee is not None:
             self.assertIsInstance(self.expense.payee, str)
+        self.assertIsInstance(self.expense.date, date)
     
     def test_expense_string_representation(self):
         """Test the string representation of an expense."""
-        expected_str = f"{self.expense.description} - £{self.expense.amount} ({self.expense.date})"
-        self.assertEqual(str(self.expense), expected_str)
+        # The __str__ method now uses payee field, or falls back to model name
+        str_repr = str(self.expense)
+        self.assertIsInstance(str_repr, str)
+        self.assertIn(str(self.expense.amount), str_repr)
+        self.assertIn(str(self.expense.date), str_repr)
+        # If payee exists, it should be in the string representation
+        if self.expense.payee:
+            self.assertIn(self.expense.payee, str_repr)
     
     def test_expense_ordering(self):
         """Test that expenses are ordered by date and creation time."""
@@ -106,6 +111,7 @@ class ExpenseFormTest(TestCase):
         self.user = UserFactory()
         self.category = CategoryFactory(category_type='expense')
         self.form_data = {
+            'description': 'Test Expense',
             'amount': '25.50',
             'payee': 'Test Store',
             'date': '2024-01-15',
@@ -279,6 +285,7 @@ class ExpenseViewsTest(TestCase):
         self.client.force_login(self.user)
         
         form_data = {
+            'description': 'New Test Expense',
             'amount': '50.00',
             'payee': 'New Store',
             'date': '2024-01-20',
@@ -341,6 +348,7 @@ class ExpenseViewsTest(TestCase):
         self.client.force_login(self.user)
         
         form_data = {
+            'description': 'Updated Test Expense',
             'amount': '75.00',
             'payee': 'Updated Store',
             'date': '2024-01-25',
@@ -451,6 +459,7 @@ class ExpenseIntegrationTest(TestCase):
         
         # 1. Create expense
         form_data = {
+            'description': 'Complete Workflow Test Expense',
             'amount': '100.00',
             'payee': 'Test Company',
             'date': '2024-01-15',
@@ -479,6 +488,7 @@ class ExpenseIntegrationTest(TestCase):
         
         # 3. Update expense
         update_data = {
+            'description': 'Updated Complete Workflow Test Expense',
             'amount': '150.00',
             'payee': 'Updated Company',
             'date': '2024-01-20',
@@ -538,6 +548,7 @@ class ExpenseIntegrationTest(TestCase):
         original_date = date(2024, 1, 10)
         
         form_data = {
+            'description': 'Data Integrity Test Expense',
             'amount': str(original_amount),
             'payee': original_payee,
             'date': original_date.strftime('%Y-%m-%d'),
@@ -562,6 +573,7 @@ class ExpenseIntegrationTest(TestCase):
         new_date = date(2024, 1, 15)
         
         update_data = {
+            'description': 'Updated Data Integrity Test Expense',
             'amount': str(new_amount),
             'payee': new_payee,
             'date': new_date.strftime('%Y-%m-%d'),

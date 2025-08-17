@@ -18,7 +18,19 @@ class BaseFinancialModel(models.Model):
         ordering = ['-date', '-created_at']
     
     def __str__(self):
-        return f"{self.description} - £{self.amount} ({self.date})"
+        # Try to get a description-like field, fallback to model name
+        if hasattr(self, 'description'):
+            display_name = self.description
+        elif hasattr(self, 'name'):
+            display_name = self.name
+        elif hasattr(self, 'payee'):
+            display_name = self.payee or "Unknown"
+        elif hasattr(self, 'payer'):
+            display_name = self.payer or "Unknown"
+        else:
+            display_name = self.__class__.__name__
+        
+        return f"{display_name} - £{self.amount} ({self.date})"
 
 class BaseListViewMixin:
     """

@@ -102,7 +102,7 @@
                                     </a>
                                 </td>
                                 <td class="text-danger fw-bold">£{{ expense.amount|floatformat:2 }}</td>
-                                <td>{{ expense.date }}</td>
+                                <td>{{ expense.date|date:"M d, Y" }}</td>
                                 <td>{{ expense.payee|default:"-" }}</td>
                                 <td>
                                     {% if expense.category %}

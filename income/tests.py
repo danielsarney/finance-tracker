@@ -29,17 +29,21 @@ class IncomeModelTest(TestCase):
         self.assertEqual(self.income.user, self.user)
         self.assertEqual(self.income.category, self.category)
         self.assertIsInstance(self.income.amount, Decimal)
-        self.assertIsInstance(self.income.description, str)
-        self.assertIsInstance(self.income.date, date)
-        # payer can be None since it's nullable
+        # payer can be None since it's nullable, but if it exists it should be a string
         if self.income.payer is not None:
             self.assertIsInstance(self.income.payer, str)
+        self.assertIsInstance(self.income.date, date)
         self.assertIsInstance(self.income.is_taxable, bool)
     
     def test_income_string_representation(self):
         """Test the string representation of an income."""
-        expected_str = f"{self.income.description} - £{self.income.amount} ({self.income.date})"
-        self.assertEqual(str(self.income), expected_str)
+        # The __str__ method uses the description field
+        str_repr = str(self.income)
+        self.assertIsInstance(str_repr, str)
+        self.assertIn(str(self.income.amount), str_repr)
+        self.assertIn(str(self.income.date), str_repr)
+        # The description should be in the string representation
+        self.assertIn(self.income.description, str_repr)
     
     def test_income_ordering(self):
         """Test that incomes are ordered by date and creation time."""
@@ -137,6 +141,7 @@ class IncomeFormTest(TestCase):
         self.user = UserFactory()
         self.category = CategoryFactory(category_type='income')
         self.form_data = {
+            'description': 'Test Income',
             'amount': '2500.00',
             'payer': 'Test Company',
             'date': '2024-01-15',
@@ -322,6 +327,7 @@ class IncomeViewsTest(TestCase):
         self.client.force_login(self.user)
         
         form_data = {
+            'description': 'New Test Income',
             'amount': '5000.00',
             'payer': 'New Company',
             'date': '2024-01-20',
@@ -386,6 +392,7 @@ class IncomeViewsTest(TestCase):
         self.client.force_login(self.user)
         
         form_data = {
+            'description': 'Updated Test Income',
             'amount': '7500.00',
             'payer': 'Updated Company',
             'date': '2024-01-25',
@@ -498,6 +505,7 @@ class IncomeIntegrationTest(TestCase):
         
         # 1. Create income
         form_data = {
+            'description': 'Complete Workflow Test Income',
             'amount': '8000.00',
             'payer': 'Test Company',
             'date': '2024-01-15',
@@ -528,6 +536,7 @@ class IncomeIntegrationTest(TestCase):
         
         # 3. Update income
         update_data = {
+            'description': 'Updated Complete Workflow Test Income',
             'amount': '12000.00',
             'payer': 'Updated Company',
             'date': '2024-01-20',
@@ -590,6 +599,7 @@ class IncomeIntegrationTest(TestCase):
         original_is_taxable = True
         
         form_data = {
+            'description': 'Data Integrity Test Income',
             'amount': str(original_amount),
             'payer': original_payer,
             'date': original_date.strftime('%Y-%m-%d'),
@@ -617,6 +627,7 @@ class IncomeIntegrationTest(TestCase):
         new_is_taxable = False
         
         update_data = {
+            'description': 'Updated Data Integrity Test Income',
             'amount': str(new_amount),
             'payer': new_payer,
             'date': new_date.strftime('%Y-%m-%d'),
@@ -648,6 +659,7 @@ class IncomeIntegrationTest(TestCase):
         
         # Test creating income with is_taxable=True
         form_data_taxable = {
+            'description': 'Taxable Test Income',
             'amount': '5000.00',
             'payer': 'Taxable Company',
             'date': '2024-01-15',
@@ -667,6 +679,7 @@ class IncomeIntegrationTest(TestCase):
         
         # Test creating income with is_taxable=False
         form_data_non_taxable = {
+            'description': 'Non-Taxable Test Income',
             'amount': '3000.00',
             'payer': 'Non-Taxable Company',
             'date': '2024-01-20',

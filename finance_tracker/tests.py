@@ -55,14 +55,12 @@ class BaseFinancialModelTest(TestCase):
     def test_base_financial_model_string_representation(self):
         """Test the string representation of BaseFinancialModel."""
         expense = ExpenseFactory()
-        # Note: The BaseFinancialModel has a bug in its __str__ method
-        # It references self.description which doesn't exist
-        # We'll test that the string representation doesn't crash
-        try:
-            str(expense)
-        except AttributeError:
-            # This is expected due to the bug in BaseFinancialModel
-            pass
+        # The BaseFinancialModel __str__ method has been fixed to handle missing description field
+        # It should now work without crashing
+        str_repr = str(expense)
+        self.assertIsInstance(str_repr, str)
+        self.assertIn(str(expense.amount), str_repr)
+        self.assertIn(str(expense.date), str_repr)
     
     def test_base_financial_model_timestamps(self):
         """Test that timestamps are automatically set."""
@@ -252,8 +250,16 @@ class BaseCRUDMixinTest(TestCase):
         # First, clear existing expenses for this user
         Expense.objects.filter(user=self.user).delete()
         
-        # Create 25 new expenses
-        ExpenseFactory.create_batch(25, user=self.user)
+        # Create 25 new expenses with the correct user and category
+        expenses = []
+        for i in range(25):
+            expense = ExpenseFactory(
+                user=self.user,
+                category=self.category,
+                amount=Decimal(f'{10 + i}.00'),
+                date=date.today() - timedelta(days=i)
+            )
+            expenses.append(expense)
         
         # Verify we have 25 expenses
         total_expenses = Expense.objects.filter(user=self.user).count()
