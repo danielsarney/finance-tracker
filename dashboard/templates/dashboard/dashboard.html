@@ -8,7 +8,64 @@
         <h1 class="h3 mb-0">
             <i class="fas fa-tachometer-alt me-2"></i>Financial Dashboard
         </h1>
-        <p class="text-muted">{{ current_month }}/{{ current_year }} Overview</p>
+        <p class="text-muted mb-3">
+            {% if selected_month and selected_year %}
+                {% if selected_month|length == 1 %}0{{ selected_month }}{% else %}{{ selected_month }}{% endif %}/{{ selected_year }} Overview
+            {% elif selected_year and not selected_month %}
+                {{ selected_year }} Overview (All Months)
+            {% elif selected_month and not selected_year %}
+                {% if selected_month|length == 1 %}0{{ selected_month }}{% else %}{{ selected_month }}{% endif %} Overview (All Years)
+            {% else %}
+                {% if current_month|length == 1 %}0{{ current_month }}{% else %}{{ current_month }}{% endif %}/{{ current_year }} Overview
+            {% endif %}
+        </p>
+        
+        <!-- Month/Year Filter -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="month" class="form-label">Month</label>
+                        <select name="month" id="month" class="form-select">
+                            <option value="">All Months</option>
+                            <option value="1" {% if selected_month == '1' %}selected{% endif %}>January</option>
+                            <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
+                            <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
+                            <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
+                            <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
+                            <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
+                            <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
+                            <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
+                            <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
+                            <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
+                            <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
+                            <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="year" class="form-label">Year</label>
+                        <select name="year" id="year" class="form-select">
+                            <option value="">All Years</option>
+                            {% for year in years %}
+                                <option value="{{ year }}" {% if year|stringformat:"s" == selected_year %}selected{% endif %}>
+                                    {{ year }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>Filter
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times me-2"></i>Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -47,15 +104,15 @@
     </div>
     
     <div class="col-md-3 mb-3">
-        <div class="card {% if net_income >= 0 %}bg-primary{% else %}bg-warning{% endif %} text-white h-100">
+        <div class="card bg-warning text-white h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h6 class="card-title">Net Income</h6>
-                        <h3 class="mb-0">£{{ net_income|floatformat:2 }}</h3>
+                        <h6 class="card-title">Work Earnings</h6>
+                        <h3 class="mb-0">£{{ total_work_earnings|floatformat:2 }}</h3>
                     </div>
                     <div class="align-self-center">
-                        <i class="fas fa-chart-line fa-2x"></i>
+                        <i class="fas fa-briefcase fa-2x"></i>
                     </div>
                 </div>
             </div>
@@ -77,6 +134,7 @@
             </div>
         </div>
     </div>
+    
 </div>
 
 <!-- Quick Actions -->

@@ -69,34 +69,6 @@
     </div>
 </div>
 
-<!-- Summary -->
-<div class="row mb-4">
-    <div class="col-md-4 mb-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body text-center">
-                <h4 class="mb-0">{{ total_hours|floatformat:1 }}</h4>
-                <small>Total Hours</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card bg-success text-white">
-            <div class="card-body text-center">
-                <h4 class="mb-0">£{{ total_earnings|floatformat:2 }}</h4>
-                <small>Total Earnings</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body text-center">
-                <h4 class="mb-0">£{{ pending_amount|floatformat:2 }}</h4>
-                <small>Pending Amount</small>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Work Logs List -->
 <div class="card">
     <div class="card-header">
@@ -109,7 +81,6 @@
                     <thead>
                         <tr>
                             <th>Company/Client</th>
-                            <th>Description</th>
                             <th>Hours</th>
                             <th>Rate</th>
                             <th>Total</th>
@@ -125,9 +96,6 @@
                                     <a href="{% url 'work:worklog_detail' worklog.pk %}" class="text-decoration-none">
                                         {{ worklog.company_client }}
                                     </a>
-                                </td>
-                                <td>
-                                    <span class="text-muted">{{ worklog.description|truncatechars:50 }}</span>
                                 </td>
                                 <td>{{ worklog.hours_worked|floatformat:2 }}h</td>
                                 <td>£{{ worklog.hourly_rate|floatformat:2 }}/h</td>

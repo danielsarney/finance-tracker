@@ -10,23 +10,13 @@ class Subscription(models.Model):
         ('YEARLY', 'Yearly'),
     ]
     
-    STATUS_CHOICES = [
-        ('ACTIVE', 'Active'),
-        ('INACTIVE', 'Inactive'),
-        ('CANCELLED', 'Cancelled'),
-    ]
-    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
     name = models.CharField(max_length=200)
-    description = models.TextField(blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     billing_cycle = models.CharField(max_length=20, choices=BILLING_CYCLE_CHOICES, default='MONTHLY')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
     start_date = models.DateField()
     next_billing_date = models.DateField()
-    end_date = models.DateField(blank=True, null=True)
-    auto_renew = models.BooleanField(default=True)
-    notes = models.TextField(blank=True, null=True)
+    category = models.ForeignKey('categories.Category', on_delete=models.PROTECT, related_name='subscriptions')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

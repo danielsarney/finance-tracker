@@ -7,6 +7,7 @@ class Expense(models.Model):
     description = models.CharField(max_length=200)
     payee = models.CharField(max_length=100, blank=True, null=True)
     date = models.DateField()
+    category = models.ForeignKey('categories.Category', on_delete=models.PROTECT, related_name='expenses')
     is_taxable = models.BooleanField(default=False)
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

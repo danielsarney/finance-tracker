@@ -143,33 +143,9 @@
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">
-                            Description <span class="text-danger">*</span>
-                        </label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.description.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+
                     
-                    <div class="mb-3">
-                        <label for="{{ form.notes.id_for_label }}" class="form-label">
-                            Notes
-                        </label>
-                        {{ form.notes }}
-                        {% if form.notes.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.notes.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+
                     
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'work:worklog_list' %}" class="btn btn-outline-secondary">

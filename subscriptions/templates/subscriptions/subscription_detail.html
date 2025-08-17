@@ -52,14 +52,15 @@
                     </div>
                     <div class="col-md-6">
                         <dl class="row">
-                            <dt class="col-sm-4">Status:</dt>
+                            <dt class="col-sm-4">Category:</dt>
                             <dd class="col-sm-8">
-                                {% if subscription.status == 'ACTIVE' %}
-                                    <span class="badge bg-success">{{ subscription.get_status_display }}</span>
-                                {% elif subscription.status == 'INACTIVE' %}
-                                    <span class="badge bg-warning">{{ subscription.get_status_display }}</span>
+                                {% if subscription.category %}
+                                    <span class="badge" style="background-color: {{ subscription.category.color }}; color: white;">
+                                        <i class="{{ subscription.category.get_icon_class }} me-1"></i>
+                                        {{ subscription.category.name }}
+                                    </span>
                                 {% else %}
-                                    <span class="badge bg-danger">{{ subscription.get_status_display }}</span>
+                                    <span class="text-muted">Not specified</span>
                                 {% endif %}
                             </dd>
                             
@@ -76,59 +77,11 @@
                                     Not set
                                 {% endif %}
                             </dd>
-                            
-                            <dt class="col-sm-4">Auto-renew:</dt>
-                            <dd class="col-sm-8">
-                                {% if subscription.auto_renew %}
-                                    <span class="badge bg-success">Yes</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">No</span>
-                                {% endif %}
-                            </dd>
                         </dl>
                     </div>
                 </div>
                 
-                {% if subscription.end_date %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <dl class="row">
-                            <dt class="col-sm-2">End Date:</dt>
-                            <dd class="col-sm-10">{{ subscription.end_date|date:"F j, Y" }}</dd>
-                        </dl>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if subscription.description %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <dt>Description:</dt>
-                        <dd>{{ subscription.description|linebreaks }}</dd>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if subscription.notes %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <dt>Notes:</dt>
-                        <dd>{{ subscription.notes|linebreaks }}</dd>
-                    </div>
-                </div>
-                {% endif %}
-                
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <dl class="row">
-                            <dt class="col-sm-2">Created:</dt>
-                            <dd class="col-sm-10">{{ subscription.created_at|date:"F j, Y g:i A" }}</dd>
-                            
-                            <dt class="col-sm-2">Last Updated:</dt>
-                            <dd class="col-sm-10">{{ subscription.updated_at|date:"F j, Y g:i A" }}</dd>
-                        </dl>
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>

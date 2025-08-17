@@ -45,7 +45,20 @@
                 <select name="year" id="year" class="form-select">
                     <option value="">All Years</option>
                     {% for year in years %}
-                        <option value="{{ year }}" {% if year|stringformat:"s" == selected_year %}selected{% endif %}>{{ year }}</option>
+                        <option value="{{ year }}" {% if year|stringformat:"s" == selected_year %}selected{% endif %}>
+                            {{ year }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="category" class="form-label">Category</label>
+                <select name="category" id="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category.id|stringformat:"s" == selected_category %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
                     {% endfor %}
                 </select>
             </div>
@@ -76,6 +89,7 @@
                             <th>Amount</th>
                             <th>Date</th>
                             <th>Payer</th>
+                            <th>Category</th>
                             <th>Taxable</th>
                             <th>Actions</th>
                         </tr>
@@ -91,6 +105,16 @@
                                 <td class="text-success fw-bold">£{{ income.amount|floatformat:2 }}</td>
                                 <td>{{ income.date }}</td>
                                 <td>{{ income.payer|default:"-" }}</td>
+                                <td>
+                                    {% if income.category %}
+                                        <span class="badge" style="background-color: {{ income.category.color }}; color: white;">
+                                            <i class="{{ income.category.get_icon_class }} me-1"></i>
+                                            {{ income.category.name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if income.is_taxable %}
                                         <span class="badge bg-success">Yes</span>
@@ -123,7 +147,7 @@
                     <ul class="pagination justify-content-center">
                         {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
                                     <i class="fas fa-chevron-left"></i>
                                 </a>
                             </li>
@@ -136,14 +160,14 @@
                                 </li>
                             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">{{ num }}</a>
+                                    <a class="page-link" href="?page={{ num }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ num }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
                         
                         {% if page_obj.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
                                     <i class="fas fa-chevron-right"></i>
                                 </a>
                             </li>

@@ -12,10 +12,17 @@ from .forms import SubscriptionForm
 def subscription_list(request):
     subscriptions = Subscription.objects.filter(user=request.user)
     
-    # Filtering
-    status = request.GET.get('status')
-    if status:
-        subscriptions = subscriptions.filter(status=status)
+    # Date filtering
+    month = request.GET.get('month')
+    year = request.GET.get('year')
+    category_id = request.GET.get('category')
+    
+    if month:
+        subscriptions = subscriptions.filter(next_billing_date__month=month)
+    if year:
+        subscriptions = subscriptions.filter(next_billing_date__year=int(year))
+    if category_id:
+        subscriptions = subscriptions.filter(category_id=category_id)
     
     # Pagination
     paginator = Paginator(subscriptions, 20)
@@ -23,22 +30,30 @@ def subscription_list(request):
     page_obj = paginator.get_page(page_number)
     
     # Summary
-    total_monthly_cost = subscriptions.filter(status='ACTIVE').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_monthly_cost = subscriptions.aggregate(Sum('amount'))['amount__sum'] or 0
     
     # Upcoming renewals
     upcoming_renewals = subscriptions.filter(
-        status='ACTIVE',
         next_billing_date__gte=timezone.now().date()
     ).order_by('next_billing_date')[:5]
+    
+    # Generate years list for the filter
+    current_year = timezone.now().year
+    years = list(range(2020, 2081))
+    
+    # Get categories for the filter dropdown
+    from categories.models import Category
+    categories = Category.objects.filter(category_type='subscription')
     
     context = {
         'page_obj': page_obj,
         'total_monthly_cost': total_monthly_cost,
         'upcoming_renewals': upcoming_renewals,
-
-        'statuses': Subscription.STATUS_CHOICES,
-        'selected_status': status,
-
+        'selected_month': month,
+        'selected_year': year,
+        'selected_category': category_id,
+        'years': years,
+        'categories': categories,
     }
     return render(request, 'subscriptions/subscription_list.html', context)
 

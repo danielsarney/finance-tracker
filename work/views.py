@@ -20,8 +20,11 @@ def worklog_list(request):
     # Date filtering
     month = request.GET.get('month')
     year = request.GET.get('year')
-    if month and year:
-        worklogs = worklogs.filter(work_date__month=month, work_date__year=year)
+    
+    if month:
+        worklogs = worklogs.filter(work_date__month=month)
+    if year:
+        worklogs = worklogs.filter(work_date__year=int(year))
     
     # Pagination
     paginator = Paginator(worklogs, 20)
@@ -33,9 +36,9 @@ def worklog_list(request):
     total_earnings = worklogs.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     pending_amount = worklogs.filter(status='PENDING').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     
-    # Generate years list for the filter
+    # Generate years list for the filter - expanded range
     current_year = timezone.now().year
-    years = list(range(current_year - 5, current_year + 2))
+    years = list(range(2020, 2081))
     
     context = {
         'page_obj': page_obj,

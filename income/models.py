@@ -7,8 +7,8 @@ class Income(models.Model):
     description = models.CharField(max_length=200)
     payer = models.CharField(max_length=100, blank=True, null=True)
     date = models.DateField()
+    category = models.ForeignKey('categories.Category', on_delete=models.PROTECT, related_name='income')
     is_taxable = models.BooleanField(default=True)
-    notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

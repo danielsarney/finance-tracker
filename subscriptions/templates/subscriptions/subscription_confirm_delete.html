@@ -18,7 +18,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-12">
         <!-- Confirmation Card -->
         <div class="card border-danger">
             <div class="card-header bg-danger text-white">
@@ -58,14 +58,15 @@
                                         <span class="badge bg-info">{{ subscription.get_billing_cycle_display }}</span>
                                     </dd>
                                     
-                                    <dt class="col-sm-4">Status:</dt>
+                                    <dt class="col-sm-4">Category:</dt>
                                     <dd class="col-sm-8">
-                                        {% if subscription.status == 'ACTIVE' %}
-                                            <span class="badge bg-success">{{ subscription.get_status_display }}</span>
-                                        {% elif subscription.status == 'INACTIVE' %}
-                                            <span class="badge bg-warning">{{ subscription.get_status_display }}</span>
+                                        {% if subscription.category %}
+                                            <span class="badge" style="background-color: {{ subscription.category.color }}; color: white;">
+                                                <i class="{{ subscription.category.get_icon_class }} me-1"></i>
+                                                {{ subscription.category.name }}
+                                            </span>
                                         {% else %}
-                                            <span class="badge bg-danger">{{ subscription.get_status_display }}</span>
+                                            <span class="text-muted">Not specified</span>
                                         {% endif %}
                                     </dd>
                                     
@@ -80,15 +81,6 @@
                                 </dl>
                             </div>
                         </div>
-                        
-                        {% if subscription.description %}
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <dt>Description:</dt>
-                                <dd>{{ subscription.description|truncatewords:20 }}</dd>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
                 
@@ -104,45 +96,6 @@
                         </a>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4">
-        <!-- Quick Actions Card -->
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">Quick Actions</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'subscriptions:subscription_detail' subscription.pk %}" class="btn btn-outline-primary">
-                        <i class="fas fa-eye me-2"></i>View Details
-                    </a>
-                    <a href="{% url 'subscriptions:subscription_update' subscription.pk %}" class="btn btn-outline-warning">
-                        <i class="fas fa-edit me-2"></i>Edit Instead
-                    </a>
-                    <a href="{% url 'subscriptions:subscription_list' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-list me-2"></i>Back to List
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Impact Warning Card -->
-        <div class="card mt-3 border-warning">
-            <div class="card-header bg-warning text-dark">
-                <h6 class="mb-0">
-                    <i class="fas fa-info-circle me-2"></i>Impact
-                </h6>
-            </div>
-            <div class="card-body">
-                <p class="mb-2"><strong>This will:</strong></p>
-                <ul class="mb-0 small">
-                    <li>Remove the subscription from your tracking</li>
-                    <li>Delete all associated data</li>
-                    <li>Affect your monthly cost calculations</li>
-                </ul>
             </div>
         </div>
     </div>

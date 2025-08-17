@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     
     # Custom apps
     'accounts',
+    'categories',
     'expenses',
     'income',
     'subscriptions',

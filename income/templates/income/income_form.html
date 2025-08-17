@@ -49,8 +49,6 @@
                     </div>
                     
                     <div class="row">
-
-                        
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.date.id_for_label }}" class="form-label">
                                 Date <span class="text-danger">*</span>
@@ -64,12 +62,10 @@
                                 </div>
                             {% endif %}
                         </div>
-                    </div>
-                    
-                    <div class="row">
+                        
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.payer.id_for_label }}" class="form-label">
-                                Payer
+                                Payer <span class="text-danger">*</span>
                             </label>
                             {{ form.payer }}
                             {% if form.payer.errors %}
@@ -80,36 +76,36 @@
                                 </div>
                             {% endif %}
                         </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check mt-4">
-                                {{ form.is_taxable }}
-                                <label class="form-check-label" for="{{ form.is_taxable.id_for_label }}">
-                                    This income is taxable
-                                </label>
-                                {% if form.is_taxable.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.is_taxable.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.notes.id_for_label }}" class="form-label">
-                            Notes
+                        <label for="{{ form.category.id_for_label }}" class="form-label">
+                            Category <span class="text-danger">*</span>
                         </label>
-                        {{ form.notes }}
-                        {% if form.notes.errors %}
+                        {{ form.category }}
+                        {% if form.category.errors %}
                             <div class="invalid-feedback d-block">
-                                {% for error in form.notes.errors %}
+                                {% for error in form.category.errors %}
                                     {{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_taxable }}
+                            <label class="form-check-label" for="{{ form.is_taxable.id_for_label }}">
+                                This income is taxable
+                            </label>
+                            {% if form.is_taxable.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.is_taxable.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                     
                     <div class="d-flex justify-content-between">

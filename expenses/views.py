@@ -15,8 +15,14 @@ def expense_list(request):
     # Date filtering
     month = request.GET.get('month')
     year = request.GET.get('year')
-    if month and year:
-        expenses = expenses.filter(date__month=month, date__year=year)
+    category_id = request.GET.get('category')
+    
+    if month:
+        expenses = expenses.filter(date__month=month)
+    if year:
+        expenses = expenses.filter(date__year=int(year))
+    if category_id:
+        expenses = expenses.filter(category_id=category_id)
     
     # Pagination
     paginator = Paginator(expenses, 20)
@@ -28,16 +34,20 @@ def expense_list(request):
     
     # Generate years list for the filter
     current_year = timezone.now().year
-    years = list(range(current_year - 5, current_year + 2))
+    years = list(range(2020, 2081))
+    
+    # Get categories for the filter dropdown
+    from categories.models import Category
+    categories = Category.objects.filter(category_type='expense')
     
     context = {
         'page_obj': page_obj,
         'total_expenses': total_expenses,
-
-
         'selected_month': month,
         'selected_year': year,
+        'selected_category': category_id,
         'years': years,
+        'categories': categories,
     }
     return render(request, 'expenses/expense_list.html', context)
 

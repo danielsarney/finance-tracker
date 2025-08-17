@@ -15,8 +15,14 @@ def income_list(request):
     # Date filtering
     month = request.GET.get('month')
     year = request.GET.get('year')
-    if month and year:
-        incomes = incomes.filter(date__month=month, date__year=year)
+    category_id = request.GET.get('category')
+    
+    if month:
+        incomes = incomes.filter(date__month=month)
+    if year:
+        incomes = incomes.filter(date__year=int(year))
+    if category_id:
+        incomes = incomes.filter(category_id=category_id)
     
     # Pagination
     paginator = Paginator(incomes, 20)
@@ -28,16 +34,20 @@ def income_list(request):
     
     # Generate years list for the filter
     current_year = timezone.now().year
-    years = list(range(current_year - 5, current_year + 2))
+    years = list(range(2020, 2081))
+    
+    # Get categories for the filter dropdown
+    from categories.models import Category
+    categories = Category.objects.filter(category_type='income')
     
     context = {
         'page_obj': page_obj,
         'total_income': total_income,
-
-
         'selected_month': month,
         'selected_year': year,
+        'selected_category': category_id,
         'years': years,
+        'categories': categories,
     }
     return render(request, 'income/income_list.html', context)
 

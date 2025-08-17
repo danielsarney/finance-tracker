@@ -49,8 +49,6 @@
                     </div>
                     
                     <div class="row">
-
-                        
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.billing_cycle.id_for_label }}" class="form-label">
                                 Billing Cycle <span class="text-danger">*</span>
@@ -64,33 +62,15 @@
                                 </div>
                             {% endif %}
                         </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.status.id_for_label }}" class="form-label">
-                                Status <span class="text-danger">*</span>
-                            </label>
-                            {{ form.status }}
-                            {% if form.status.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.status.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
                         
                         <div class="col-md-6 mb-3">
-                            <div class="form-check mt-4">
-                                {{ form.auto_renew }}
-                                <label class="form-check-label" for="{{ form.auto_renew.id_for_label }}">
-                                    Auto-renew subscription
-                                </label>
-                            </div>
-                            {% if form.auto_renew.errors %}
+                            <label for="{{ form.category.id_for_label }}" class="form-label">
+                                Category <span class="text-danger">*</span>
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.auto_renew.errors %}
+                                    {% for error in form.category.errors %}
                                         {{ error }}
                                     {% endfor %}
                                 </div>
@@ -126,51 +106,6 @@
                                 </div>
                             {% endif %}
                         </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.end_date.id_for_label }}" class="form-label">
-                                End Date
-                            </label>
-                            {{ form.end_date }}
-                            {% if form.end_date.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.end_date.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <div class="form-text">Leave blank if no end date</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">
-                            Description
-                        </label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.description.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.notes.id_for_label }}" class="form-label">
-                            Notes
-                        </label>
-                        {{ form.notes }}
-                        {% if form.notes.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.notes.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
                     </div>
                     
                     <div class="d-flex justify-content-between">

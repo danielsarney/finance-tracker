@@ -12,7 +12,6 @@ class WorkLog(models.Model):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='work_logs')
     company_client = models.CharField(max_length=200)
-    description = models.TextField()
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2)
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -21,7 +20,6 @@ class WorkLog(models.Model):
     invoice_date = models.DateField(blank=True, null=True)
     payment_date = models.DateField(blank=True, null=True)
     invoice_number = models.CharField(max_length=50, blank=True, null=True)
-    notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

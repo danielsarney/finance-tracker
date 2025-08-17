@@ -53,12 +53,15 @@
                             <dt class="col-sm-4">Payee:</dt>
                             <dd class="col-sm-8">{{ expense.payee|default:"Not specified" }}</dd>
                             
-                            <dt class="col-sm-4">Taxable:</dt>
+                            <dt class="col-sm-4">Category:</dt>
                             <dd class="col-sm-8">
-                                {% if expense.is_taxable %}
-                                    <span class="badge bg-success">Yes</span>
+                                {% if expense.category %}
+                                    <span class="badge" style="background-color: {{ expense.category.color }}; color: white;">
+                                        <i class="{{ expense.category.get_icon_class }} me-1"></i>
+                                        {{ expense.category.name }}
+                                    </span>
                                 {% else %}
-                                    <span class="badge bg-secondary">No</span>
+                                    <span class="text-muted">Not specified</span>
                                 {% endif %}
                             </dd>
                         </dl>

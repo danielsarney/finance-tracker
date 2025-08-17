@@ -18,7 +18,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-12">
         <!-- Confirmation Card -->
         <div class="card border-danger">
             <div class="card-header bg-danger text-white">
@@ -58,6 +58,18 @@
                                     
                                     <dt class="col-sm-4">Payee:</dt>
                                     <dd class="col-sm-8">{{ expense.payee|default:"Not specified" }}</dd>
+                                    
+                                    <dt class="col-sm-4">Category:</dt>
+                                    <dd class="col-sm-8">
+                                        {% if expense.category %}
+                                            <span class="badge" style="background-color: {{ expense.category.color }}; color: white;">
+                                                <i class="{{ expense.category.get_icon_class }} me-1"></i>
+                                                {{ expense.category.name }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">Not specified</span>
+                                        {% endif %}
+                                    </dd>
                                 </dl>
                             </div>
                         </div>
@@ -76,28 +88,6 @@
                         </a>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4">
-        <!-- Quick Actions Card -->
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">Quick Actions</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'expenses:expense_detail' expense.pk %}" class="btn btn-outline-primary">
-                        <i class="fas fa-eye me-2"></i>View Details
-                    </a>
-                    <a href="{% url 'expenses:expense_update' expense.pk %}" class="btn btn-outline-warning">
-                        <i class="fas fa-edit me-2"></i>Edit Instead
-                    </a>
-                    <a href="{% url 'expenses:expense_list' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-list me-2"></i>Back to List
-                    </a>
-                </div>
             </div>
         </div>
     </div>

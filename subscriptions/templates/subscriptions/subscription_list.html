@@ -22,15 +22,45 @@
     <div class="card-body">
         <form method="get" class="row g-3">
             <div class="col-md-3">
-                <label for="status" class="form-label">Status</label>
-                <select name="status" id="status" class="form-select">
-                    <option value="">All Statuses</option>
-                    {% for code, name in statuses %}
-                        <option value="{{ code }}" {% if code == selected_status %}selected{% endif %}>{{ name }}</option>
+                <label for="month" class="form-label">Month</label>
+                <select name="month" id="month" class="form-select">
+                    <option value="">All Months</option>
+                    <option value="1" {% if selected_month == '1' %}selected{% endif %}>January</option>
+                    <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
+                    <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
+                    <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
+                    <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
+                    <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
+                    <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
+                    <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
+                    <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
+                    <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
+                    <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
+                    <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="year" class="form-label">Year</label>
+                <select name="year" id="year" class="form-select">
+                    <option value="">All Years</option>
+                    {% for year in years %}
+                        <option value="{{ year }}" {% if year|stringformat:"s" == selected_year %}selected{% endif %}>
+                            {{ year }}
+                        </option>
                     {% endfor %}
                 </select>
             </div>
-
+            <div class="col-md-3">
+                <label for="category" class="form-label">Category</label>
+                <select name="category" id="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category.id|stringformat:"s" == selected_category %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="col-md-3 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary me-2">
                     <i class="fas fa-filter me-2"></i>Filter
@@ -58,7 +88,6 @@
                     <div class="card border-info">
                         <div class="card-body">
                             <h6 class="card-title">{{ subscription.name }}</h6>
-                            <p class="card-text text-muted">{{ subscription.description|default:"No description" }}</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="badge bg-info">£{{ subscription.amount|floatformat:2 }}</span>
                                 <small class="text-muted">Due: {{ subscription.next_billing_date }}</small>
@@ -86,7 +115,7 @@
                             <th>Name</th>
                             <th>Amount</th>
                             <th>Billing Cycle</th>
-                            <th>Status</th>
+                            <th>Category</th>
                             <th>Next Billing</th>
                             <th>Actions</th>
                         </tr>
@@ -98,21 +127,19 @@
                                     <a href="{% url 'subscriptions:subscription_detail' subscription.pk %}" class="text-decoration-none">
                                         {{ subscription.name }}
                                     </a>
-                                    {% if subscription.description %}
-                                        <br><small class="text-muted">{{ subscription.description|truncatechars:50 }}</small>
-                                    {% endif %}
                                 </td>
                                 <td class="text-info fw-bold">£{{ subscription.amount|floatformat:2 }}</td>
                                 <td>
                                     <span class="badge bg-secondary">{{ subscription.get_billing_cycle_display }}</span>
                                 </td>
                                 <td>
-                                    {% if subscription.status == 'ACTIVE' %}
-                                        <span class="badge bg-success">Active</span>
-                                    {% elif subscription.status == 'INACTIVE' %}
-                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% if subscription.category %}
+                                        <span class="badge" style="background-color: {{ subscription.category.color }}; color: white;">
+                                            <i class="{{ subscription.category.get_icon_class }} me-1"></i>
+                                            {{ subscription.category.name }}
+                                        </span>
                                     {% else %}
-                                        <span class="badge bg-danger">Cancelled</span>
+                                        <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ subscription.next_billing_date }}</td>
@@ -141,7 +168,7 @@
                     <ul class="pagination justify-content-center">
                         {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
                                     <i class="fas fa-chevron-left"></i>
                                 </a>
                             </li>
@@ -154,14 +181,14 @@
                                 </li>
                             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}{% if selected_status %}&status={{ selected_status }}{% endif %}">{{ num }}</a>
+                                    <a class="page-link" href="?page={{ num }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ num }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
                         
                         {% if page_obj.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_month %}&month={{ selected_month }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
                                     <i class="fas fa-chevron-right"></i>
                                 </a>
                             </li>

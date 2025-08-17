@@ -24,11 +24,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('dashboard.urls')),
     path('accounts/', include('accounts.urls')),
+    path('categories/', include('categories.urls')),
     path('expenses/', include('expenses.urls')),
     path('income/', include('income.urls')),
     path('subscriptions/', include('subscriptions.urls')),
     path('work/', include('work.urls')),
-
 ]
 
 # Serve media files during development
