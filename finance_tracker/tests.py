@@ -1,12 +1,8 @@
 from django.test import TestCase, Client, RequestFactory
-from django.contrib.auth.models import User
-from django.urls import reverse
 from django.utils import timezone
 from django.core.paginator import Paginator
-from django.contrib import messages
 from decimal import Decimal
 from datetime import date, datetime, timedelta
-import random
 
 from finance_tracker.factories import (
     UserFactory, CategoryFactory, ExpenseFactory,

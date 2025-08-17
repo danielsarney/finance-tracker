@@ -1,10 +1,7 @@
 from django.test import TestCase, Client
-from django.contrib.auth.models import User
 from django.urls import reverse
-from django.utils import timezone
 from decimal import Decimal
 from datetime import date, timedelta
-import random
 
 from finance_tracker.factories import (
     UserFactory, CategoryFactory, IncomeFactory,
