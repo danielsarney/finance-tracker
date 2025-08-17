@@ -23,10 +23,21 @@ def dashboard(request):
     # Apply filters based on selection
     if selected_month and selected_year:
         # Specific month and year
-        month = int(selected_month)
-        year = int(selected_year)
-        display_month = month
-        display_year = year
+        try:
+            month = int(selected_month)
+            year = int(selected_year)
+            # Validate month and year ranges
+            if month < 1 or month > 12 or year < 1900 or year > 2100:
+                month = current_date.month
+                year = current_date.year
+            display_month = month
+            display_year = year
+        except (ValueError, TypeError):
+            # Invalid input, use current month/year
+            month = current_date.month
+            year = current_date.year
+            display_month = month
+            display_year = year
         
         month_expenses = expenses_base.filter(date__month=month, date__year=year)
         month_income = income_base.filter(date__month=month, date__year=year)
@@ -34,9 +45,16 @@ def dashboard(request):
         
     elif selected_year and not selected_month:
         # Only year selected - show all months for that year
-        year = int(selected_year)
-        display_month = None
-        display_year = year
+        try:
+            year = int(selected_year)
+            if year < 1900 or year > 2100:
+                year = current_date.year
+            display_month = None
+            display_year = year
+        except (ValueError, TypeError):
+            year = current_date.year
+            display_month = None
+            display_year = year
         
         month_expenses = expenses_base.filter(date__year=year)
         month_income = income_base.filter(date__year=year)
@@ -44,9 +62,16 @@ def dashboard(request):
         
     elif selected_month and not selected_year:
         # Only month selected - show that month for all years
-        month = int(selected_month)
-        display_month = month
-        display_year = None
+        try:
+            month = int(selected_month)
+            if month < 1 or month > 12:
+                month = current_date.month
+            display_month = month
+            display_year = None
+        except (ValueError, TypeError):
+            month = current_date.month
+            display_month = month
+            display_year = None
         
         month_expenses = expenses_base.filter(date__month=month)
         month_income = income_base.filter(date__month=month)

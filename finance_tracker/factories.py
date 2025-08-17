@@ -72,11 +72,12 @@ class SubscriptionFactory(DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     name = factory.Faker('company')
     amount = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
+    description = factory.Faker('sentence', nb_words=4)
+    date = factory.Faker('date_between', start_date='-6m', end_date='today')
     billing_cycle = factory.Iterator(['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'])
     start_date = factory.Faker('date_between', start_date='-6m', end_date='today')
     next_billing_date = factory.LazyAttribute(lambda obj: obj.start_date)
     category = factory.SubFactory(CategoryFactory, category_type='subscription')
-    is_active = factory.Faker('boolean', chance_of_getting_true=80)
 
 
 class WorkLogFactory(DjangoModelFactory):
@@ -85,10 +86,11 @@ class WorkLogFactory(DjangoModelFactory):
         model = 'work.WorkLog'
     
     user = factory.SubFactory(UserFactory)
+    company_client = factory.Faker('company')
     hours_worked = factory.Faker('pydecimal', left_digits=1, right_digits=1, positive=True, min_value=0.5, max_value=12.0)
     hourly_rate = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
-    date = factory.Faker('date_between', start_date='-1y', end_date='today')
-    category = factory.SubFactory(CategoryFactory, category_type='work')
+    work_date = factory.Faker('date_between', start_date='-1y', end_date='today')
+    status = factory.Iterator(['PENDING', 'INVOICED', 'PAID'])
 
 
 # UserProfileFactory removed - no longer needed
@@ -178,5 +180,5 @@ class BatchWorkLogFactory:
         for _ in range(count):
             day = random.randint(1, 28)
             work_date = date(year, month, day)
-            work_logs.append(WorkLogFactory(user=user, date=work_date, **kwargs))
+            work_logs.append(WorkLogFactory(user=user, work_date=work_date, **kwargs))
         return work_logs
