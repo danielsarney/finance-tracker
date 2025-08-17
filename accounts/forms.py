@@ -2,7 +2,6 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import UserProfile
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -19,6 +18,7 @@ class CustomUserCreationForm(UserCreationForm):
         required=True,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your last name'})
     )
+    
     class Meta:
         model = User
         fields = ('email', 'first_name', 'last_name', 'password1', 'password2')
@@ -88,18 +88,3 @@ class CustomAuthenticationForm(forms.Form):
                 raise forms.ValidationError('Invalid email or password.')
         
         return self.cleaned_data
-
-class UserProfileForm(forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        fields = ['profile_picture', 'phone', 'address', 'date_of_birth', 'default_currency', 'tax_rate', 'email_notifications', 'sms_notifications']
-        widgets = {
-            'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'default_currency': forms.Select(attrs={'class': 'form-control'}),
-            'tax_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-            'email_notifications': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'sms_notifications': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }

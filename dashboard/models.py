@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
-
 class FinancialSummary(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='financial_summaries')
     month = models.IntegerField()  # 1-12
