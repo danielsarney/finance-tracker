@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDeleteConfirmations();
     initializeFilters();
     initializeSortableTables();
-    initializeCharts();
     initializeMobileMenu();
     initializeSmoothScrolling();
     initializeFormAutoSave();
@@ -132,42 +131,6 @@ function initializeSortableTables() {
             rows.forEach(row => tbody.appendChild(row));
         });
     });
-}
-
-// Charts
-function initializeCharts() {
-    if (typeof Chart !== 'undefined') {
-        // Example chart for dashboard
-        var ctx = document.getElementById('expenseChart');
-        if (ctx) {
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Food', 'Transport', 'Entertainment', 'Utilities', 'Healthcare', 'Shopping', 'Other'],
-                    datasets: [{
-                        data: [12, 19, 3, 5, 2, 3, 7],
-                        backgroundColor: [
-                            '#FF6384',
-                            '#36A2EB',
-                            '#FFCE56',
-                            '#4BC0C0',
-                            '#9966FF',
-                            '#FF9F40',
-                            '#FF6384'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        }
-    }
 }
 
 // Mobile Menu
