@@ -81,12 +81,7 @@ Finance Tracker is a full-featured personal finance management application built
    python3 manage.py test
    ```
 
-### Default URLs
-- **Main Dashboard**: `/`
-- **Login**: `/accounts/login/`
-- **Register**: `/accounts/register/`
-- **Expenses**: `/expenses/`
-- **Income**: `/income/`
-- **Subscriptions**: `/subscriptions/`
-- **Work Logs**: `/work/`
-- **Categories**: `/categories/`
+10. **Generate Demo Data**
+   ```
+   python3 manage.py seed
+   ```

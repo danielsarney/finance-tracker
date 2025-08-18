@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # Custom apps
+    'finance_tracker',
     'accounts',
     'categories',
     'expenses',
