@@ -26,7 +26,7 @@ def income_list(request):
     
     # Add income-specific context
     total_income = filtered_queryset.aggregate(Sum('amount'))['amount__sum'] or 0
-    categories = mixin.get_categories('income')
+    categories = mixin.get_categories()
     
     context.update({
         'total_income': total_income,

@@ -17,6 +17,15 @@
     </div>
 </div>
 
+<!-- Auto-update Notification -->
+{% if updated_subscriptions %}
+<div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Auto-updated {{ updated_subscriptions }} subscription{{ updated_subscriptions|pluralize }}</strong> - Next billing dates have been automatically updated for expired subscriptions.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
 <!-- Filters -->
 <div class="card mb-4">
     <div class="card-body">

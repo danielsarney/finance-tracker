@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeMobileMenu();
     initializeSmoothScrolling();
     initializeFormAutoSave();
+    initializeSubscriptionCalculator();
 });
 
 // Bootstrap Components Initialization
@@ -206,6 +207,62 @@ function initializeFormAutoSave() {
             });
         });
     });
+}
+
+// Subscription Billing Date Calculator
+function initializeSubscriptionCalculator() {
+    // Look for subscription form fields by their actual names
+    var dateField = document.querySelector('input[name="date"]');
+    var billingCycleField = document.querySelector('select[name="billing_cycle"]');
+    var nextBillingDateField = document.querySelector('input[name="next_billing_date"]');
+
+    if (dateField && billingCycleField && nextBillingDateField) {
+        function calculateNextBillingDate() {
+            const selectedDate = new Date(dateField.value);
+            const billingCycle = billingCycleField.value;
+            
+            if (!selectedDate || isNaN(selectedDate.getTime()) || !billingCycle) {
+                return;
+            }
+            
+            let nextDate = new Date(selectedDate);
+            
+            switch(billingCycle) {
+                case 'DAILY':
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    break;
+                case 'WEEKLY':
+                    nextDate.setDate(nextDate.getDate() + 7);
+                    break;
+                case 'MONTHLY':
+                    nextDate.setMonth(nextDate.getMonth() + 1);
+                    break;
+                case 'QUARTERLY':
+                    nextDate.setMonth(nextDate.getMonth() + 3);
+                    break;
+                case 'YEARLY':
+                    nextDate.setFullYear(nextDate.getFullYear() + 1);
+                    break;
+            }
+            
+            // Format the date as YYYY-MM-DD for the input field
+            const year = nextDate.getFullYear();
+            const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+            const day = String(nextDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            nextBillingDateField.value = formattedDate;
+        }
+        
+        // Calculate when date or billing cycle changes
+        dateField.addEventListener('change', calculateNextBillingDate);
+        billingCycleField.addEventListener('change', calculateNextBillingDate);
+        
+        // Calculate initial value if both fields have values
+        if (dateField.value && billingCycleField.value) {
+            calculateNextBillingDate();
+        }
+    }
 }
 
 // Utility functions

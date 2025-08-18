@@ -50,6 +50,36 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label for="{{ form.date.id_for_label }}" class="form-label">
+                                Date <span class="text-danger">*</span>
+                            </label>
+                            {{ form.date }}
+                            {% if form.date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.next_billing_date.id_for_label }}" class="form-label">
+                                Next Billing Date <span class="text-danger">*</span>
+                            </label>
+                            {{ form.next_billing_date }}
+                            {% if form.next_billing_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.next_billing_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label for="{{ form.billing_cycle.id_for_label }}" class="form-label">
                                 Billing Cycle <span class="text-danger">*</span>
                             </label>
@@ -78,36 +108,6 @@
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
-                                Start Date <span class="text-danger">*</span>
-                            </label>
-                            {{ form.start_date }}
-                            {% if form.start_date.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.start_date.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.next_billing_date.id_for_label }}" class="form-label">
-                                Next Billing Date <span class="text-danger">*</span>
-                            </label>
-                            {{ form.next_billing_date }}
-                            {% if form.next_billing_date.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.next_billing_date.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'subscriptions:subscription_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Cancel
@@ -121,4 +121,58 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateField = document.getElementById('{{ form.date.id_for_label }}');
+    const billingCycleField = document.getElementById('{{ form.billing_cycle.id_for_label }}');
+    const nextBillingDateField = document.getElementById('{{ form.next_billing_date.id_for_label }}');
+    
+    function calculateNextBillingDate() {
+        const selectedDate = new Date(dateField.value);
+        const billingCycle = billingCycleField.value;
+        
+        if (!selectedDate || isNaN(selectedDate.getTime()) || !billingCycle) {
+            return;
+        }
+        
+        let nextDate = new Date(selectedDate);
+        
+        switch(billingCycle) {
+            case 'DAILY':
+                nextDate.setDate(nextDate.getDate() + 1);
+                break;
+            case 'WEEKLY':
+                nextDate.setDate(nextDate.getDate() + 7);
+                break;
+            case 'MONTHLY':
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                break;
+            case 'QUARTERLY':
+                nextDate.setMonth(nextDate.getMonth() + 3);
+                break;
+            case 'YEARLY':
+                nextDate.setFullYear(nextDate.getFullYear() + 1);
+                break;
+        }
+        
+        // Format the date as YYYY-MM-DD for the input field
+        const year = nextDate.getFullYear();
+        const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+        const day = String(nextDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+        
+        nextBillingDateField.value = formattedDate;
+    }
+    
+    // Calculate when date or billing cycle changes
+    dateField.addEventListener('change', calculateNextBillingDate);
+    billingCycleField.addEventListener('change', calculateNextBillingDate);
+    
+    // Calculate initial value if both fields have values
+    if (dateField.value && billingCycleField.value) {
+        calculateNextBillingDate();
+    }
+});
+</script>
 {% endblock %}

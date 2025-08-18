@@ -26,7 +26,7 @@ def expense_list(request):
     
     # Add expense-specific context
     total_expenses = filtered_queryset.aggregate(Sum('amount'))['amount__sum'] or 0
-    categories = mixin.get_categories('expense')
+    categories = mixin.get_categories()
     
     context.update({
         'total_expenses': total_expenses,
