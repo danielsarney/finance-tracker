@@ -71,6 +71,7 @@ def category_delete(request, pk):
         if is_used:
             if not replacement_category_id or replacement_category_id == '':
                 print("No replacement category selected")
+                messages.error(request, 'Please select a replacement category.')
                 return redirect('categories:category_delete', pk=pk)
             
             try:
@@ -107,6 +108,7 @@ def category_delete(request, pk):
                     
             except Category.DoesNotExist:
                 print("Replacement category not found")
+                messages.error(request, 'Selected replacement category does not exist.')
                 return redirect('categories:category_delete', pk=pk)
             except Exception as e:
                 print(f"Error during deletion: {e}")
@@ -120,7 +122,7 @@ def category_delete(request, pk):
                 print("Category deleted successfully")
                 
                 # Success message
-                messages.success(request, f'Category "{category.name}" deleted successfully!')
+                messages.success(request, 'Category deleted successfully!')
                 
                 return redirect('categories:category_list')
             except Exception as e:
@@ -133,13 +135,21 @@ def category_delete(request, pk):
     
     # Only get replacement categories if the category is being used
     replacement_categories = None
+    usage_breakdown = None
     if is_used:
         replacement_categories = Category.objects.exclude(pk=category.pk).order_by('name')
+        # Create usage breakdown
+        usage_breakdown = {
+            'expenses': category.expense_set.count(),
+            'income': category.income_set.count(),
+            'subscriptions': category.subscription_set.count(),
+        }
     
     context = {
         'category': category,
         'is_used': is_used,
         'replacement_categories': replacement_categories,
+        'usage_breakdown': usage_breakdown,
     }
     
     return render(request, 'categories/category_confirm_delete.html', context)

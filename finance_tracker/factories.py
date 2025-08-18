@@ -73,8 +73,7 @@ class SubscriptionFactory(DjangoModelFactory):
     amount = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
     date = factory.Faker('date_between', start_date='-6m', end_date='today')
     billing_cycle = factory.Iterator(['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'])
-    start_date = factory.Faker('date_between', start_date='-6m', end_date='today')
-    next_billing_date = factory.LazyAttribute(lambda obj: obj.start_date)
+    next_billing_date = factory.LazyAttribute(lambda obj: obj.date)
     category = factory.SubFactory(CategoryFactory)
 
 

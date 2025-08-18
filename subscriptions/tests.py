@@ -29,7 +29,6 @@ class SubscriptionModelTest(TestCase):
         self.assertIsInstance(self.subscription.name, str)
         self.assertIsInstance(self.subscription.date, date)
         self.assertIsInstance(self.subscription.billing_cycle, str)
-        self.assertIsInstance(self.subscription.start_date, date)
         self.assertIsInstance(self.subscription.next_billing_date, date)
     
     def test_subscription_string_representation(self):
@@ -101,10 +100,10 @@ class SubscriptionModelTest(TestCase):
     
     def test_subscription_dates(self):
         """Test the date fields."""
-        self.assertIsInstance(self.subscription.start_date, date)
+        self.assertIsInstance(self.subscription.date, date)
         self.assertIsInstance(self.subscription.next_billing_date, date)
-        # next_billing_date should be >= start_date
-        self.assertGreaterEqual(self.subscription.next_billing_date, self.subscription.start_date)
+        # next_billing_date should be >= date
+        self.assertGreaterEqual(self.subscription.next_billing_date, self.subscription.date)
     
     def test_subscription_save_method(self):
         """Test the custom save method."""
@@ -114,13 +113,12 @@ class SubscriptionModelTest(TestCase):
             category=self.category,
             name='Test Service',
             amount=Decimal('10.00'),
-            date=date.today(),
-            start_date=date.today()
+            date=date.today()
         )
         new_subscription.save()
         
-        # next_billing_date should be set to start_date
-        self.assertEqual(new_subscription.next_billing_date, new_subscription.start_date)
+        # next_billing_date should be set to date
+        self.assertEqual(new_subscription.next_billing_date, new_subscription.date)
     
     def test_subscription_timestamps(self):
         """Test that timestamps are automatically set."""
@@ -141,7 +139,6 @@ class SubscriptionFormTest(TestCase):
             'amount': '25.00',
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
-            'start_date': '2024-01-15',
             'next_billing_date': '2024-02-15',
             'category': self.category.id
         }
@@ -187,7 +184,6 @@ class SubscriptionFormTest(TestCase):
         """Test that date fields have today's date as initial value."""
         form = SubscriptionForm()
         self.assertEqual(form.fields['date'].initial, date.today())
-        self.assertEqual(form.fields['start_date'].initial, date.today())
         self.assertEqual(form.fields['next_billing_date'].initial, date.today())
     
     def test_subscription_form_category_queryset_filtering(self):
@@ -228,12 +224,7 @@ class SubscriptionFormTest(TestCase):
         billing_cycle_widget = form.fields['billing_cycle'].widget
         self.assertEqual(billing_cycle_widget.attrs['class'], 'form-select')
         
-        # Check start_date field widget
-        start_date_widget = form.fields['start_date'].widget
-        self.assertEqual(start_date_widget.attrs['class'], 'form-control')
-        # The type attribute might not be set depending on Django version
-        if 'type' in start_date_widget.attrs:
-            self.assertEqual(start_date_widget.attrs['type'], 'date')
+
         
         # Check next_billing_date field widget
         next_billing_date_widget = form.fields['next_billing_date'].widget
@@ -557,7 +548,6 @@ class SubscriptionIntegrationTest(TestCase):
             'amount': '100.00',
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
-            'start_date': '2024-01-15',
             'next_billing_date': '2024-02-15',
             'category': self.category.id
         }
@@ -589,7 +579,6 @@ class SubscriptionIntegrationTest(TestCase):
             'amount': '150.00',
             'date': '2024-01-20',
             'billing_cycle': 'YEARLY',
-            'start_date': '2024-01-20',
             'next_billing_date': '2025-01-20',
             'category': self.category.id
         }
@@ -647,7 +636,7 @@ class SubscriptionIntegrationTest(TestCase):
         original_amount = Decimal('75.50')
         original_billing_cycle = 'MONTHLY'
         original_date = date(2024, 1, 10)
-        original_start_date = date(2024, 1, 10)
+
         original_next_billing_date = date(2024, 2, 10)
         
         form_data = {
@@ -655,7 +644,6 @@ class SubscriptionIntegrationTest(TestCase):
             'amount': str(original_amount),
             'date': original_date.strftime('%Y-%m-%d'),
             'billing_cycle': original_billing_cycle,
-            'start_date': original_start_date.strftime('%Y-%m-%d'),
             'next_billing_date': original_next_billing_date.strftime('%Y-%m-%d'),
             'category': self.category.id
         }
@@ -670,7 +658,6 @@ class SubscriptionIntegrationTest(TestCase):
             amount=original_amount,
             billing_cycle=original_billing_cycle,
             date=original_date,
-            start_date=original_start_date,
             next_billing_date=original_next_billing_date
         ).first()
         self.assertIsNotNone(created_subscription)
@@ -680,7 +667,7 @@ class SubscriptionIntegrationTest(TestCase):
         new_amount = Decimal('125.75')
         new_billing_cycle = 'YEARLY'
         new_date = date(2024, 1, 15)
-        new_start_date = date(2024, 1, 15)
+
         new_next_billing_date = date(2025, 1, 15)
         
         update_data = {
@@ -688,7 +675,6 @@ class SubscriptionIntegrationTest(TestCase):
             'amount': str(new_amount),
             'date': new_date.strftime('%Y-%m-%d'),
             'billing_cycle': new_billing_cycle,
-            'start_date': new_start_date.strftime('%Y-%m-%d'),
             'next_billing_date': new_next_billing_date.strftime('%Y-%m-%d'),
             'category': self.category.id
         }
@@ -704,7 +690,7 @@ class SubscriptionIntegrationTest(TestCase):
         self.assertEqual(created_subscription.amount, new_amount)
         self.assertEqual(created_subscription.billing_cycle, new_billing_cycle)
         self.assertEqual(created_subscription.date, new_date)
-        self.assertEqual(created_subscription.start_date, new_start_date)
+        self.assertEqual(created_subscription.date, new_date)
         self.assertEqual(created_subscription.next_billing_date, new_next_billing_date)
         
         # Verify original data is not preserved
@@ -712,7 +698,7 @@ class SubscriptionIntegrationTest(TestCase):
         self.assertNotEqual(created_subscription.amount, original_amount)
         self.assertNotEqual(created_subscription.billing_cycle, original_billing_cycle)
         self.assertNotEqual(created_subscription.date, original_date)
-        self.assertNotEqual(created_subscription.start_date, original_start_date)
+        self.assertNotEqual(created_subscription.date, original_date)
         self.assertNotEqual(created_subscription.next_billing_date, original_next_billing_date)
     
     def test_subscription_billing_cycle_behavior(self):
@@ -725,7 +711,6 @@ class SubscriptionIntegrationTest(TestCase):
             'amount': '50.00',
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
-            'start_date': '2024-01-15',
             'next_billing_date': '2024-02-15',
             'category': self.category.id
         }
@@ -746,7 +731,6 @@ class SubscriptionIntegrationTest(TestCase):
             'amount': '500.00',
             'date': '2024-01-20',
             'billing_cycle': 'YEARLY',
-            'start_date': '2024-01-20',
             'next_billing_date': '2025-01-20',
             'category': self.category.id
         }
@@ -771,8 +755,7 @@ class SubscriptionIntegrationTest(TestCase):
             'amount': '25.00',
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
-            'start_date': '2024-01-15',
-            'next_billing_date': '2024-01-15',  # Same as start_date
+            'next_billing_date': '2024-01-15',  # Same as date
             'category': self.category.id
         }
         
@@ -784,7 +767,7 @@ class SubscriptionIntegrationTest(TestCase):
             name='Same Date Service'
         ).first()
         self.assertIsNotNone(same_date_subscription)
-        self.assertEqual(same_date_subscription.start_date, same_date_subscription.next_billing_date)
+        self.assertEqual(same_date_subscription.date, same_date_subscription.next_billing_date)
         
         # Test that next_billing_date can be after start_date
         form_data_future_date = {
@@ -792,8 +775,7 @@ class SubscriptionIntegrationTest(TestCase):
             'amount': '30.00',
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
-            'start_date': '2024-01-15',
-            'next_billing_date': '2024-03-15',  # After start_date
+            'next_billing_date': '2024-03-15',  # After date
             'category': self.category.id
         }
         
@@ -805,4 +787,4 @@ class SubscriptionIntegrationTest(TestCase):
             name='Future Date Service'
         ).first()
         self.assertIsNotNone(future_date_subscription)
-        self.assertGreater(future_date_subscription.next_billing_date, future_date_subscription.start_date)
+        self.assertGreater(future_date_subscription.next_billing_date, future_date_subscription.date)
