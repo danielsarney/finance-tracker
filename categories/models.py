@@ -24,3 +24,30 @@ class Category(models.Model):
             else:
                 return f"fas {self.icon}"
         return "fas fa-tag"  # Default icon
+    
+    def is_used(self):
+        """Check if this category is being used by any financial items"""
+        return (
+            self.expense_set.exists() or
+            self.income_set.exists() or
+            self.subscription_set.exists() or
+            self.worklog_set.exists()
+        )
+    
+    def get_usage_count(self):
+        """Get the total count of items using this category"""
+        return (
+            self.expense_set.count() +
+            self.income_set.count() +
+            self.subscription_set.count() +
+            self.worklog_set.count()
+        )
+    
+    def get_usage_breakdown(self):
+        """Get a breakdown of how this category is being used"""
+        return {
+            'expenses': self.expense_set.count(),
+            'income': self.income_set.count(),
+            'subscriptions': self.subscription_set.count(),
+            'work_logs': self.worklog_set.count(),
+        }

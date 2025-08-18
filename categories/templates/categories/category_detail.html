@@ -26,7 +26,7 @@
 <div class="row">
     <div class="col-12">
         <!-- Category Details Card -->
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Category Information</h5>
             </div>
@@ -59,6 +59,65 @@
                         </dl>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Usage Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Usage Information
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if category.is_used %}
+                    {% with usage=category.get_usage_breakdown %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Total Items: {{ usage.expenses|add:usage.income|add:usage.subscriptions|add:usage.work_logs }}</h6>
+                                <div class="list-group list-group-flush">
+                                    {% if usage.expenses > 0 %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-shopping-cart me-2"></i>Expenses</span>
+                                            <span class="badge bg-primary rounded-pill">{{ usage.expenses }}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if usage.income > 0 %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-money-bill-wave me-2"></i>Income</span>
+                                            <span class="badge bg-success rounded-pill">{{ usage.income }}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if usage.subscriptions > 0 %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-credit-card me-2"></i>Subscriptions</span>
+                                            <span class="badge bg-warning rounded-pill">{{ usage.subscriptions }}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if usage.work_logs > 0 %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-briefcase me-2"></i>Work Logs</span>
+                                            <span class="badge bg-info rounded-pill">{{ usage.work_logs }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Note:</strong> This category is currently in use. 
+                                    If you delete it, you'll need to select a replacement category 
+                                    to move all items to.
+                                </div>
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">This category is not currently being used by any items.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -56,6 +56,112 @@ class CategoryModelTest(TestCase):
         CategoryFactory(name='Unique Name')
         with self.assertRaises(Exception):  # Should raise IntegrityError
             CategoryFactory(name='Unique Name')
+    
+    def test_category_usage_methods(self):
+        """Test category usage checking methods."""
+        category = CategoryFactory()
+        
+        # Initially, category should not be used
+        self.assertFalse(category.is_used())
+        self.assertEqual(category.get_usage_count(), 0)
+        self.assertEqual(category.get_usage_breakdown(), {
+            'expenses': 0,
+            'income': 0,
+            'subscriptions': 0,
+            'work_logs': 0
+        })
+    
+    def test_category_usage_with_expenses(self):
+        """Test category usage when it has expenses."""
+        from expenses.models import Expense
+        from finance_tracker.factories import ExpenseFactory
+        
+        category = CategoryFactory()
+        user = UserFactory()
+        
+        # Create an expense using this category
+        expense = ExpenseFactory(user=user, category=category)
+        
+        self.assertTrue(category.is_used())
+        self.assertEqual(category.get_usage_count(), 1)
+        self.assertEqual(category.get_usage_breakdown(), {
+            'expenses': 1,
+            'income': 0,
+            'subscriptions': 0,
+            'work_logs': 0
+        })
+        
+        # Clean up
+        expense.delete()
+    
+    def test_category_usage_with_income(self):
+        """Test category usage when it has income."""
+        from income.models import Income
+        from finance_tracker.factories import IncomeFactory
+        
+        category = CategoryFactory()
+        user = UserFactory()
+        
+        # Create income using this category
+        income = IncomeFactory(user=user, category=category)
+        
+        self.assertTrue(category.is_used())
+        self.assertEqual(category.get_usage_count(), 1)
+        self.assertEqual(category.get_usage_breakdown(), {
+            'expenses': 0,
+            'income': 1,
+            'subscriptions': 0,
+            'work_logs': 0
+        })
+        
+        # Clean up
+        income.delete()
+    
+    def test_category_usage_with_subscriptions(self):
+        """Test category usage when it has subscriptions."""
+        from subscriptions.models import Subscription
+        from finance_tracker.factories import SubscriptionFactory
+        
+        category = CategoryFactory()
+        user = UserFactory()
+        
+        # Create subscription using this category
+        subscription = SubscriptionFactory(user=user, category=category)
+        
+        self.assertTrue(category.is_used())
+        self.assertEqual(category.get_usage_count(), 1)
+        self.assertEqual(category.get_usage_breakdown(), {
+            'expenses': 0,
+            'income': 0,
+            'subscriptions': 1,
+            'work_logs': 0
+        })
+        
+        # Clean up
+        subscription.delete()
+    
+    def test_category_usage_with_work_logs(self):
+        """Test category usage when it has work logs."""
+        from work.models import WorkLog
+        from finance_tracker.factories import WorkLogFactory
+        
+        category = CategoryFactory()
+        user = UserFactory()
+        
+        # Create work log using this category
+        work_log = WorkLogFactory(user=user, category=category)
+        
+        self.assertTrue(category.is_used())
+        self.assertEqual(category.get_usage_count(), 1)
+        self.assertEqual(category.get_usage_breakdown(), {
+            'expenses': 0,
+            'income': 0,
+            'subscriptions': 0,
+            'work_logs': 1
+        })
+        
+        # Clean up
+        work_log.delete()
 
 
 class CategoryFormTest(TestCase):
@@ -242,6 +348,127 @@ class CategoryViewTest(TestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'Category deleted successfully!')
     
+    def test_category_delete_view_with_replacement(self):
+        """Test category_delete view with replacement category."""
+        from expenses.models import Expense
+        from finance_tracker.factories import ExpenseFactory
+        
+        # Create a category that's being used
+        used_category = CategoryFactory()
+        replacement_category = CategoryFactory()
+        user = UserFactory()
+        
+        # Create an expense using the category
+        expense = ExpenseFactory(user=user, category=used_category)
+        
+        # Try to delete with replacement
+        response = self.client.post(
+            reverse('categories:category_delete', kwargs={'pk': used_category.pk}),
+            {'replacement_category': replacement_category.pk}
+        )
+        
+        self.assertEqual(response.status_code, 302)  # Redirect after success
+        
+        # Check if original category was deleted
+        self.assertFalse(Category.objects.filter(pk=used_category.pk).exists())
+        
+        # Check if expense was moved to replacement category
+        expense.refresh_from_db()
+        self.assertEqual(expense.category, replacement_category)
+        
+        # Check success message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertIn('deleted successfully', str(messages[0]))
+        self.assertIn('moved to', str(messages[0]))
+        
+        # Clean up
+        expense.delete()
+        replacement_category.delete()
+    
+    def test_category_delete_view_with_invalid_replacement(self):
+        """Test category_delete view with invalid replacement category."""
+        from expenses.models import Expense
+        from finance_tracker.factories import ExpenseFactory
+        
+        # Create a category that's being used
+        used_category = CategoryFactory()
+        user = UserFactory()
+        
+        # Create an expense using the category
+        expense = ExpenseFactory(user=user, category=used_category)
+        
+        # Try to delete with invalid replacement ID
+        response = self.client.post(
+            reverse('categories:category_delete', kwargs={'pk': used_category.pk}),
+            {'replacement_category': 99999}  # Non-existent ID
+        )
+        
+        self.assertEqual(response.status_code, 302)  # Redirect after error
+        
+        # Check if category still exists
+        self.assertTrue(Category.objects.filter(pk=used_category.pk).exists())
+        
+        # Check error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertIn('does not exist', str(messages[0]))
+        
+        # Clean up
+        expense.delete()
+        used_category.delete()
+    
+    def test_category_delete_view_context_with_usage(self):
+        """Test category_delete view context when category is in use."""
+        from expenses.models import Expense
+        from finance_tracker.factories import ExpenseFactory
+        
+        # Create a category that's being used
+        used_category = CategoryFactory()
+        user = UserFactory()
+        
+        # Create an expense using the category
+        expense = ExpenseFactory(user=user, category=used_category)
+        
+        # Get the delete view
+        response = self.client.get(reverse('categories:category_delete', kwargs={'pk': used_category.pk}))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'categories/category_confirm_delete.html')
+        
+        # Check context
+        self.assertIn('category', response.context)
+        self.assertIn('is_used', response.context)
+        self.assertIn('usage_breakdown', response.context)
+        self.assertIn('replacement_categories', response.context)
+        
+        # Check usage info
+        self.assertTrue(response.context['is_used'])
+        self.assertEqual(response.context['usage_breakdown']['expenses'], 1)
+        
+        # Check replacement categories (should exclude the current one)
+        replacement_categories = response.context['replacement_categories']
+        self.assertNotIn(used_category, replacement_categories)
+        
+        # Clean up
+        expense.delete()
+        used_category.delete()
+    
+    def test_category_delete_view_context_without_usage(self):
+        """Test category_delete view context when category is not in use."""
+        # Get the delete view for unused category
+        response = self.client.get(reverse('categories:category_delete', kwargs={'pk': self.category.pk}))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'categories/category_confirm_delete.html')
+        
+        # Check context
+        self.assertIn('category', response.context)
+        self.assertIn('is_used', response.context)
+        self.assertFalse(response.context['is_used'])
+        self.assertIsNone(response.context['usage_breakdown'])
+        self.assertIn('replacement_categories', response.context)
+    
     def test_category_delete_view_nonexistent(self):
         """Test category_delete view with nonexistent category."""
         response = self.client.post(reverse('categories:category_delete', kwargs={'pk': 99999}))
@@ -254,6 +481,32 @@ class CategoryViewTest(TestCase):
         self.assertTemplateUsed(response, 'categories/category_detail.html')
         self.assertIn('category', response.context)
         self.assertEqual(response.context['category'], self.category)
+    
+    def test_category_detail_view_with_usage(self):
+        """Test category_detail view when category is in use."""
+        from expenses.models import Expense
+        from finance_tracker.factories import ExpenseFactory
+        
+        # Create a category that's being used
+        used_category = CategoryFactory()
+        user = UserFactory()
+        
+        # Create an expense using the category
+        expense = ExpenseFactory(user=user, category=used_category)
+        
+        # Get the detail view
+        response = self.client.get(reverse('categories:category_detail', kwargs={'pk': used_category.pk}))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'categories/category_detail.html')
+        
+        # Check context
+        self.assertIn('category', response.context)
+        self.assertEqual(response.context['category'], used_category)
+        
+        # Clean up
+        expense.delete()
+        used_category.delete()
     
     def test_category_detail_view_nonexistent(self):
         """Test category_detail view with nonexistent category."""
