@@ -55,7 +55,7 @@ class BaseListViewMixin:
         """Generate years list for filtering."""
         return get_years_list()
     
-    def get_categories(self, category_type):
-        """Get categories for filtering."""
+    def get_categories(self):
+        """Get all categories for filtering."""
         from categories.models import Category
-        return Category.objects.filter(category_type=category_type)
+        return Category.objects.all()

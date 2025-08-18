@@ -157,14 +157,13 @@ class BaseListViewMixinTest(TestCase):
     
     def test_get_categories(self):
         """Test get_categories method."""
-        categories = self.mixin.get_categories('expense')
+        categories = self.mixin.get_categories()
         
         # Should return a queryset
         self.assertIsInstance(categories, Category.objects.all().__class__)
         
-        # Should filter by category type
-        for category in categories:
-            self.assertEqual(category.category_type, 'expense')
+        # Should return all categories (no more filtering by type)
+        self.assertGreater(categories.count(), 0)
     
     def _create_request(self, query_string):
         """Helper method to create a request with query parameters."""

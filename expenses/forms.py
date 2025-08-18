@@ -18,5 +18,5 @@ class ExpenseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['date'].initial = date.today()
-        # Filter categories to only show expense types
-        self.fields['category'].queryset = Category.objects.filter(category_type='expense')
+        # All categories are now available for expenses
+        self.fields['category'].queryset = Category.objects.all()

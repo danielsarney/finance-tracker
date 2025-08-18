@@ -115,10 +115,10 @@ class DashboardViewTest(TestCase):
         self.client.login(username=self.user.username, password='testpass123')
         
         # Create categories
-        self.expense_category = CategoryFactory(category_type='expense')
-        self.income_category = CategoryFactory(category_type='income')
-        self.subscription_category = CategoryFactory(category_type='subscription')
-        self.work_category = CategoryFactory(category_type='work')
+        self.expense_category = CategoryFactory()
+        self.income_category = CategoryFactory()
+        self.subscription_category = CategoryFactory()
+        self.work_category = CategoryFactory()
         
         # Create test data for current month
         current_date = timezone.now().date()
@@ -390,10 +390,10 @@ class DashboardIntegrationTest(TestCase):
         self.client.login(username=self.user.username, password='testpass123')
         
         # Create categories
-        self.expense_category = CategoryFactory(category_type='expense')
-        self.income_category = CategoryFactory(category_type='income')
-        self.subscription_category = CategoryFactory(category_type='subscription')
-        self.work_category = CategoryFactory(category_type='work')
+        self.expense_category = CategoryFactory()
+        self.income_category = CategoryFactory()
+        self.subscription_category = CategoryFactory()
+        self.work_category = CategoryFactory()
     
     def test_dashboard_complete_workflow(self):
         """Test complete dashboard workflow with data creation and filtering."""

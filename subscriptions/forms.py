@@ -22,5 +22,5 @@ class SubscriptionForm(forms.ModelForm):
         self.fields['date'].initial = date.today()
         self.fields['start_date'].initial = date.today()
         self.fields['next_billing_date'].initial = date.today()
-        # Filter categories to only show subscription types
-        self.fields['category'].queryset = Category.objects.filter(category_type='subscription')
+        # All categories are now available for subscriptions
+        self.fields['category'].queryset = Category.objects.all()

@@ -24,7 +24,6 @@ class CategoryFactory(DjangoModelFactory):
         model = 'categories.Category'
     
     name = factory.Sequence(lambda n: f'category_{n}')
-    category_type = factory.Iterator(['expense', 'income', 'subscription', 'work'])
     color = factory.Faker('hex_color')
     icon = factory.Iterator([
         'fas fa-shopping-cart',
@@ -47,7 +46,7 @@ class ExpenseFactory(DjangoModelFactory):
     description = factory.Faker('sentence', nb_words=3)
     amount = factory.Faker('pydecimal', left_digits=3, right_digits=2, positive=True)
     date = factory.Faker('date_between', start_date='-1y', end_date='today')
-    category = factory.SubFactory(CategoryFactory, category_type='expense')
+    category = factory.SubFactory(CategoryFactory)
 
 
 class IncomeFactory(DjangoModelFactory):
@@ -59,7 +58,7 @@ class IncomeFactory(DjangoModelFactory):
     description = factory.Faker('sentence', nb_words=3)
     amount = factory.Faker('pydecimal', left_digits=4, right_digits=2, positive=True)
     date = factory.Faker('date_between', start_date='-1y', end_date='today')
-    category = factory.SubFactory(CategoryFactory, category_type='income')
+    category = factory.SubFactory(CategoryFactory)
     payer = factory.Faker('company')
     is_taxable = factory.Iterator([True, False])
 
@@ -76,7 +75,7 @@ class SubscriptionFactory(DjangoModelFactory):
     billing_cycle = factory.Iterator(['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'])
     start_date = factory.Faker('date_between', start_date='-6m', end_date='today')
     next_billing_date = factory.LazyAttribute(lambda obj: obj.start_date)
-    category = factory.SubFactory(CategoryFactory, category_type='subscription')
+    category = factory.SubFactory(CategoryFactory)
 
 
 class WorkLogFactory(DjangoModelFactory):

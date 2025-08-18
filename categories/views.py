@@ -9,11 +9,6 @@ from .forms import CategoryForm
 def category_list(request):
     categories = Category.objects.all()
     
-    # Filter by category type
-    category_type = request.GET.get('type')
-    if category_type:
-        categories = categories.filter(category_type=category_type)
-    
     # Pagination
     paginator = Paginator(categories, 20)
     page_number = request.GET.get('page')
@@ -21,8 +16,6 @@ def category_list(request):
     
     context = {
         'page_obj': page_obj,
-        'category_types': Category.CATEGORY_TYPES,
-        'selected_type': category_type,
     }
     return render(request, 'categories/category_list.html', context)
 

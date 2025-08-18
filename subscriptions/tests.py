@@ -17,7 +17,7 @@ class SubscriptionModelTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='subscription')
+        self.category = CategoryFactory()
         self.subscription = SubscriptionFactory(user=self.user, category=self.category)
     
     def test_subscription_creation(self):
@@ -135,7 +135,7 @@ class SubscriptionFormTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='subscription')
+        self.category = CategoryFactory()
         self.form_data = {
             'name': 'Test Service',
             'amount': '25.00',
@@ -191,18 +191,18 @@ class SubscriptionFormTest(TestCase):
         self.assertEqual(form.fields['next_billing_date'].initial, date.today())
     
     def test_subscription_form_category_queryset_filtering(self):
-        """Test that only subscription categories are shown."""
+        """Test that all categories are shown."""
         # Create categories of different types
-        expense_category = CategoryFactory(category_type='expense')
-        income_category = CategoryFactory(category_type='income')
+        expense_category = CategoryFactory()
+        income_category = CategoryFactory()
         
         form = SubscriptionForm()
         category_queryset = form.fields['category'].queryset
         
-        # Should only include subscription categories
+        # Should include all categories
         self.assertIn(self.category, category_queryset)
-        self.assertNotIn(expense_category, category_queryset)
-        self.assertNotIn(income_category, category_queryset)
+        self.assertIn(expense_category, category_queryset)
+        self.assertIn(income_category, category_queryset)
     
     def test_subscription_form_widget_attributes(self):
         """Test that form widgets have correct attributes."""
@@ -271,7 +271,7 @@ class SubscriptionViewsTest(TestCase):
         """Set up test data."""
         self.client = Client()
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='subscription')
+        self.category = CategoryFactory()
         self.subscription = SubscriptionFactory(user=self.user, category=self.category)
         
         # Create additional test data
@@ -502,7 +502,7 @@ class SubscriptionURLsTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='subscription')
+        self.category = CategoryFactory()
         self.subscription = SubscriptionFactory(user=self.user, category=self.category)
     
     def test_subscription_list_url(self):
@@ -540,7 +540,7 @@ class SubscriptionIntegrationTest(TestCase):
         """Set up test data."""
         self.client = Client()
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='subscription')
+        self.category = CategoryFactory()
         
         # Create multiple subscriptions for testing
         self.subscriptions = BatchSubscriptionFactory.create_batch_for_user(

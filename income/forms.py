@@ -19,5 +19,5 @@ class IncomeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['date'].initial = date.today()
-        # Filter categories to only show income types
-        self.fields['category'].queryset = Category.objects.filter(category_type='income')
+        # All categories are now available for income
+        self.fields['category'].queryset = Category.objects.all()

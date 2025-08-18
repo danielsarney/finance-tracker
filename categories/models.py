@@ -1,15 +1,7 @@
 from django.db import models
 
 class Category(models.Model):
-    CATEGORY_TYPES = [
-        ('expense', 'Expense'),
-        ('income', 'Income'), 
-        ('subscription', 'Subscription'),
-        ('general', 'General'),
-    ]
-    
     name = models.CharField(max_length=100, unique=True)
-    category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES, default='general')
     icon = models.CharField(max_length=50, blank=True, help_text="FontAwesome icon name (e.g., 'fa-utensils')")
     color = models.CharField(max_length=7, default='#6c757d', help_text="Hex color code (e.g., #6c757d)")
     created_at = models.DateTimeField(auto_now_add=True)

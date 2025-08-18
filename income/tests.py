@@ -17,7 +17,7 @@ class IncomeModelTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='income')
+        self.category = CategoryFactory()
         self.income = IncomeFactory(user=self.user, category=self.category)
     
     def test_income_creation(self):
@@ -136,7 +136,7 @@ class IncomeFormTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='income')
+        self.category = CategoryFactory()
         self.form_data = {
             'description': 'Test Income',
             'amount': '2500.00',
@@ -182,18 +182,18 @@ class IncomeFormTest(TestCase):
         self.assertEqual(form.fields['date'].initial, date.today())
     
     def test_income_form_category_queryset_filtering(self):
-        """Test that only income categories are shown."""
+        """Test that all categories are shown."""
         # Create categories of different types
-        expense_category = CategoryFactory(category_type='expense')
-        subscription_category = CategoryFactory(category_type='subscription')
+        expense_category = CategoryFactory()
+        subscription_category = CategoryFactory()
         
         form = IncomeForm()
         category_queryset = form.fields['category'].queryset
         
-        # Should only include income categories
+        # Should include all categories
         self.assertIn(self.category, category_queryset)
-        self.assertNotIn(expense_category, category_queryset)
-        self.assertNotIn(subscription_category, category_queryset)
+        self.assertIn(expense_category, category_queryset)
+        self.assertIn(subscription_category, category_queryset)
     
     def test_income_form_widget_attributes(self):
         """Test that form widgets have correct attributes."""
@@ -241,7 +241,7 @@ class IncomeViewsTest(TestCase):
         """Set up test data."""
         self.client = Client()
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='income')
+        self.category = CategoryFactory()
         self.income = IncomeFactory(user=self.user, category=self.category)
         
         # Create additional test data
@@ -451,7 +451,7 @@ class IncomeURLsTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='income')
+        self.category = CategoryFactory()
         self.income = IncomeFactory(user=self.user, category=self.category)
     
     def test_income_list_url(self):
@@ -489,7 +489,7 @@ class IncomeIntegrationTest(TestCase):
         """Set up test data."""
         self.client = Client()
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='income')
+        self.category = CategoryFactory()
         
         # Create multiple incomes for testing
         self.incomes = BatchIncomeFactory.create_batch_for_month(

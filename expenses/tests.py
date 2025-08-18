@@ -16,7 +16,7 @@ class ExpenseModelTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='expense')
+        self.category = CategoryFactory()
         self.expense = ExpenseFactory(user=self.user, category=self.category)
     
     def test_expense_creation(self):
@@ -105,7 +105,7 @@ class ExpenseFormTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='expense')
+        self.category = CategoryFactory()
         self.form_data = {
             'description': 'Test Expense',
             'amount': '25.50',
@@ -150,18 +150,18 @@ class ExpenseFormTest(TestCase):
         self.assertEqual(form.fields['date'].initial, date.today())
     
     def test_expense_form_category_queryset_filtering(self):
-        """Test that only expense categories are shown."""
+        """Test that all categories are shown."""
         # Create categories of different types
-        income_category = CategoryFactory(category_type='income')
-        subscription_category = CategoryFactory(category_type='subscription')
+        income_category = CategoryFactory()
+        subscription_category = CategoryFactory()
         
         form = ExpenseForm()
         category_queryset = form.fields['category'].queryset
         
-        # Should only include expense categories
+        # Should include all categories
         self.assertIn(self.category, category_queryset)
-        self.assertNotIn(income_category, category_queryset)
-        self.assertNotIn(subscription_category, category_queryset)
+        self.assertIn(income_category, category_queryset)
+        self.assertIn(subscription_category, category_queryset)
     
     def test_expense_form_widget_attributes(self):
         """Test that form widgets have correct attributes."""
@@ -198,7 +198,7 @@ class ExpenseViewsTest(TestCase):
         """Set up test data."""
         self.client = Client()
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='expense')
+        self.category = CategoryFactory()
         self.expense = ExpenseFactory(user=self.user, category=self.category)
         
         # Create additional test data
@@ -404,7 +404,7 @@ class ExpenseURLsTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='expense')
+        self.category = CategoryFactory()
         self.expense = ExpenseFactory(user=self.user, category=self.category)
     
     def test_expense_list_url(self):
@@ -442,7 +442,7 @@ class ExpenseIntegrationTest(TestCase):
         """Set up test data."""
         self.client = Client()
         self.user = UserFactory()
-        self.category = CategoryFactory(category_type='expense')
+        self.category = CategoryFactory()
         
         # Create multiple expenses for testing
         self.expenses = BatchExpenseFactory.create_batch_for_month(

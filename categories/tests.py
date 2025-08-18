@@ -19,7 +19,6 @@ class CategoryModelTest(TestCase):
         """Test that a category can be created."""
         self.assertIsInstance(self.category, Category)
         self.assertEqual(self.category.name, self.category.name)
-        self.assertIn(self.category.category_type, [choice[0] for choice in Category.CATEGORY_TYPES])
     
     def test_category_string_representation(self):
         """Test the string representation of a category."""
@@ -29,11 +28,6 @@ class CategoryModelTest(TestCase):
         """Test category meta options."""
         self.assertEqual(Category._meta.verbose_name_plural, "Categories")
         self.assertEqual(Category._meta.ordering, ['name'])
-    
-    def test_category_types(self):
-        """Test that category types are valid."""
-        valid_types = [choice[0] for choice in Category.CATEGORY_TYPES]
-        self.assertIn(self.category.category_type, valid_types)
     
     def test_get_icon_class_with_icon(self):
         """Test get_icon_class method when icon is provided."""
@@ -53,7 +47,6 @@ class CategoryModelTest(TestCase):
     def test_category_defaults(self):
         """Test category default values."""
         category = Category.objects.create(name='Test Category')
-        self.assertEqual(category.category_type, 'general')
         self.assertEqual(category.color, '#6c757d')
         self.assertIsNotNone(category.created_at)
         self.assertIsNotNone(category.updated_at)
@@ -76,7 +69,6 @@ class CategoryFormTest(TestCase):
         """Test CategoryForm with valid data."""
         form_data = {
             'name': 'Test Category',
-            'category_type': 'expense',
             'icon': 'fa-utensils',
             'color': '#ff0000'
         }
@@ -87,26 +79,23 @@ class CategoryFormTest(TestCase):
         """Test CategoryForm with invalid data."""
         form_data = {
             'name': '',  # Empty name should be invalid
-            'category_type': 'invalid_type',  # Invalid category type
             'icon': 'fa-utensils',
             'color': '#ff0000'
         }
         form = CategoryForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn('name', form.errors)
-        self.assertIn('category_type', form.errors)
     
     def test_category_form_fields(self):
         """Test that CategoryForm has the correct fields."""
         form = CategoryForm()
-        expected_fields = ['name', 'category_type', 'icon', 'color']
+        expected_fields = ['name', 'icon', 'color']
         self.assertEqual(list(form.fields.keys()), expected_fields)
     
     def test_category_form_widgets(self):
         """Test that CategoryForm has the correct widgets."""
         form = CategoryForm()
         self.assertEqual(form.fields['name'].widget.attrs['class'], 'form-control')
-        self.assertEqual(form.fields['category_type'].widget.attrs['class'], 'form-select')
         self.assertEqual(form.fields['icon'].widget.attrs['class'], 'form-control')
         # Color field should use TextInput with type='color'
         self.assertIsInstance(form.fields['color'].widget, forms.TextInput)
@@ -131,19 +120,12 @@ class CategoryViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'categories/category_list.html')
         self.assertIn('page_obj', response.context)
-        self.assertIn('category_types', response.context)
     
     def test_category_list_view_unauthenticated(self):
         """Test category_list view redirects unauthenticated users."""
         self.client.logout()
         response = self.client.get(reverse('categories:category_list'))
         self.assertEqual(response.status_code, 302)  # Redirect to login
-    
-    def test_category_list_view_with_type_filter(self):
-        """Test category_list view with type filter."""
-        response = self.client.get(reverse('categories:category_list'), {'type': 'expense'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['selected_type'], 'expense')
     
     def test_category_list_view_pagination(self):
         """Test category_list view pagination."""
@@ -169,7 +151,6 @@ class CategoryViewTest(TestCase):
         """Test category_create view POST request with valid data."""
         form_data = {
             'name': 'New Test Category',
-            'category_type': 'income',
             'icon': 'fa-money-bill',
             'color': '#00ff00'
         }
@@ -188,7 +169,6 @@ class CategoryViewTest(TestCase):
         """Test category_create view POST request with invalid data."""
         form_data = {
             'name': '',  # Invalid: empty name
-            'category_type': 'expense',
             'icon': 'fa-utensils',
             'color': '#ff0000'
         }
@@ -209,7 +189,6 @@ class CategoryViewTest(TestCase):
         """Test category_update view POST request with valid data."""
         form_data = {
             'name': 'Updated Category Name',
-            'category_type': 'subscription',
             'icon': 'fa-credit-card',
             'color': '#0000ff'
         }
@@ -219,7 +198,6 @@ class CategoryViewTest(TestCase):
         # Check if category was updated
         self.category.refresh_from_db()
         self.assertEqual(self.category.name, 'Updated Category Name')
-        self.assertEqual(self.category.category_type, 'subscription')
         
         # Check success message
         messages = list(get_messages(response.wsgi_request))
@@ -230,7 +208,6 @@ class CategoryViewTest(TestCase):
         """Test category_update view POST request with invalid data."""
         form_data = {
             'name': '',  # Invalid: empty name
-            'category_type': 'expense',
             'icon': 'fa-utensils',
             'color': '#ff0000'
         }
@@ -332,7 +309,6 @@ class CategoryIntegrationTest(TestCase):
         # 1. Create a category
         create_data = {
             'name': 'Integration Test Category',
-            'category_type': 'expense',
             'icon': 'fa-test',
             'color': '#123456'
         }
@@ -341,14 +317,12 @@ class CategoryIntegrationTest(TestCase):
         
         # 2. Verify category was created
         category = Category.objects.get(name='Integration Test Category')
-        self.assertEqual(category.category_type, 'expense')
         self.assertEqual(category.icon, 'fa-test')
         self.assertEqual(category.color, '#123456')
         
         # 3. Update the category
         update_data = {
             'name': 'Updated Integration Test Category',
-            'category_type': 'income',
             'icon': 'fa-updated',
             'color': '#654321'
         }
@@ -358,7 +332,6 @@ class CategoryIntegrationTest(TestCase):
         # 4. Verify category was updated
         category.refresh_from_db()
         self.assertEqual(category.name, 'Updated Integration Test Category')
-        self.assertEqual(category.category_type, 'income')
         
         # 5. Delete the category
         response = self.client.post(reverse('categories:category_delete', kwargs={'pk': category.pk}))
@@ -368,28 +341,12 @@ class CategoryIntegrationTest(TestCase):
         self.assertFalse(Category.objects.filter(pk=category.pk).exists())
     
     def test_category_list_with_multiple_categories(self):
-        """Test category list view with multiple categories and filtering."""
-        # Create categories of different types with unique names to avoid conflicts
+        """Test category list view with multiple categories."""
+        # Create multiple categories with unique names to avoid conflicts
         for i in range(5):
-            CategoryFactory(name=f'Expense Category {i}', category_type='expense')
-        
-        for i in range(3):
-            CategoryFactory(name=f'Income Category {i}', category_type='income')
-        
-        for i in range(2):
-            CategoryFactory(name=f'Subscription Category {i}', category_type='subscription')
+            CategoryFactory(name=f'Category {i}')
         
         # Test unfiltered list
         response = self.client.get(reverse('categories:category_list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['page_obj']), 10)  # Total categories
-        
-        # Test filtered by expense type
-        response = self.client.get(reverse('categories:category_list'), {'type': 'expense'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['page_obj']), 5)  # Only expense categories
-        
-        # Test filtered by income type
-        response = self.client.get(reverse('categories:category_list'), {'type': 'income'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['page_obj']), 3)  # Only income categories
+        self.assertEqual(len(response.context['page_obj']), 5)  # Total categories
