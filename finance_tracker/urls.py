@@ -15,10 +15,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from django.http import HttpResponse
-
-def health_check(request):
-    return HttpResponse("OK", status=200)
 
 urlpatterns = [
     path('', include('dashboard.urls')),
@@ -28,5 +24,4 @@ urlpatterns = [
     path('income/', include('income.urls')),
     path('subscriptions/', include('subscriptions.urls')),
     path('work/', include('work.urls')),
-    path('health/', health_check, name='health_check'),
 ]
