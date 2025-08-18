@@ -67,8 +67,7 @@ class CategoryModelTest(TestCase):
         self.assertEqual(category.get_usage_breakdown(), {
             'expenses': 0,
             'income': 0,
-            'subscriptions': 0,
-            'work_logs': 0
+            'subscriptions': 0
         })
     
     def test_category_usage_with_expenses(self):
@@ -87,8 +86,7 @@ class CategoryModelTest(TestCase):
         self.assertEqual(category.get_usage_breakdown(), {
             'expenses': 1,
             'income': 0,
-            'subscriptions': 0,
-            'work_logs': 0
+            'subscriptions': 0
         })
         
         # Clean up
@@ -110,8 +108,7 @@ class CategoryModelTest(TestCase):
         self.assertEqual(category.get_usage_breakdown(), {
             'expenses': 0,
             'income': 1,
-            'subscriptions': 0,
-            'work_logs': 0
+            'subscriptions': 0
         })
         
         # Clean up
@@ -133,35 +130,11 @@ class CategoryModelTest(TestCase):
         self.assertEqual(category.get_usage_breakdown(), {
             'expenses': 0,
             'income': 0,
-            'subscriptions': 1,
-            'work_logs': 0
+            'subscriptions': 1
         })
         
         # Clean up
         subscription.delete()
-    
-    def test_category_usage_with_work_logs(self):
-        """Test category usage when it has work logs."""
-        from work.models import WorkLog
-        from finance_tracker.factories import WorkLogFactory
-        
-        category = CategoryFactory()
-        user = UserFactory()
-        
-        # Create work log using this category
-        work_log = WorkLogFactory(user=user, category=category)
-        
-        self.assertTrue(category.is_used())
-        self.assertEqual(category.get_usage_count(), 1)
-        self.assertEqual(category.get_usage_breakdown(), {
-            'expenses': 0,
-            'income': 0,
-            'subscriptions': 0,
-            'work_logs': 1
-        })
-        
-        # Clean up
-        work_log.delete()
 
 
 class CategoryFormTest(TestCase):

@@ -60,53 +60,85 @@ def category_delete(request, pk):
     if request.method == 'POST':
         replacement_category_id = request.POST.get('replacement_category')
         
-        if replacement_category_id and replacement_category_id != 'none':
+        # Debug: Print what we received
+        print(f"POST data: {request.POST}")
+        print(f"Replacement category ID: {replacement_category_id}")
+        print(f"Category is_used: {category.is_used()}")
+        
+        # Check if category is being used
+        is_used = category.is_used()
+        
+        if is_used:
+            if not replacement_category_id or replacement_category_id == '':
+                print("No replacement category selected")
+                return redirect('categories:category_delete', pk=pk)
+            
             try:
                 replacement_category = Category.objects.get(pk=replacement_category_id)
+                print(f"Found replacement category: {replacement_category.name}")
                 
                 with transaction.atomic():
                     # Update all related items to use the replacement category
                     if category.expense_set.exists():
+                        print(f"Updating {category.expense_set.count()} expenses")
                         category.expense_set.update(category=replacement_category)
                     
                     if category.income_set.exists():
+                        print(f"Updating {category.income_set.count()} income entries")
                         category.income_set.update(category=replacement_category)
                     
                     if category.subscription_set.exists():
+                        print(f"Updating {category.subscription_set.count()} subscriptions")
                         category.subscription_set.update(category=replacement_category)
                     
-                    if category.worklog_set.exists():
-                        category.worklog_set.update(category=replacement_category)
-                    
                     # Now delete the original category
+                    print("Deleting original category")
                     category.delete()
+                    print("Category deleted successfully")
                     
+                    # Success message
                     messages.success(
                         request, 
                         f'Category "{category.name}" deleted successfully! All items have been moved to "{replacement_category.name}".'
                     )
                     
+                    # If we get here, deletion was successful
+                    return redirect('categories:category_list')
+                    
             except Category.DoesNotExist:
-                messages.error(request, 'Selected replacement category does not exist.')
+                print("Replacement category not found")
+                return redirect('categories:category_delete', pk=pk)
+            except Exception as e:
+                print(f"Error during deletion: {e}")
+                # If any error occurs, redirect back to delete page
                 return redirect('categories:category_delete', pk=pk)
         else:
-            # No replacement category selected, just delete
-            category.delete()
-            messages.success(request, 'Category deleted successfully!')
-        
-        return redirect('categories:category_list')
+            # Category is not being used, safe to delete
+            try:
+                print("Category not in use, deleting directly")
+                category.delete()
+                print("Category deleted successfully")
+                
+                # Success message
+                messages.success(request, f'Category "{category.name}" deleted successfully!')
+                
+                return redirect('categories:category_list')
+            except Exception as e:
+                print(f"Error during deletion: {e}")
+                # If deletion fails, redirect back to delete page
+                return redirect('categories:category_delete', pk=pk)
     
     # Check if category is being used
     is_used = category.is_used()
-    usage_breakdown = category.get_usage_breakdown() if is_used else None
     
-    # Get other categories for replacement (excluding the current one)
-    replacement_categories = Category.objects.exclude(pk=category.pk).order_by('name')
+    # Only get replacement categories if the category is being used
+    replacement_categories = None
+    if is_used:
+        replacement_categories = Category.objects.exclude(pk=category.pk).order_by('name')
     
     context = {
         'category': category,
         'is_used': is_used,
-        'usage_breakdown': usage_breakdown,
         'replacement_categories': replacement_categories,
     }
     

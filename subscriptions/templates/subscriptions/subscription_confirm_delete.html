@@ -48,7 +48,8 @@
                                         <span class="text-primary fw-bold">£{{ subscription.amount|floatformat:2 }}</span>
                                     </dd>
                                     
-
+                                    <dt class="col-sm-4">Date:</dt>
+                                    <dd class="col-sm-8">{{ subscription.date|date:"F j, Y" }}</dd>
                                 </dl>
                             </div>
                             <div class="col-md-6">

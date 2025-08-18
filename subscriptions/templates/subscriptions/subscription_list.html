@@ -123,6 +123,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Amount</th>
+                            <th>Date</th>
                             <th>Billing Cycle</th>
                             <th>Category</th>
                             <th>Next Billing</th>
@@ -138,6 +139,7 @@
                                     </a>
                                 </td>
                                 <td class="text-info fw-bold">£{{ subscription.amount|floatformat:2 }}</td>
+                                <td>{{ subscription.date|date:"M j, Y" }}</td>
                                 <td>
                                     <span class="badge bg-secondary">{{ subscription.get_billing_cycle_display }}</span>
                                 </td>
@@ -151,7 +153,7 @@
                                         <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ subscription.next_billing_date }}</td>
+                                <td>{{ subscription.next_billing_date|date:"M j, Y" }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <a href="{% url 'subscriptions:subscription_detail' subscription.pk %}" class="btn btn-outline-primary">

@@ -74,7 +74,7 @@
                     {% with usage=category.get_usage_breakdown %}
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>Total Items: {{ usage.expenses|add:usage.income|add:usage.subscriptions|add:usage.work_logs }}</h6>
+                                <h6>Total Items: {{ usage.expenses|add:usage.income|add:usage.subscriptions }}</h6>
                                 <div class="list-group list-group-flush">
                                     {% if usage.expenses > 0 %}
                                         <div class="list-group-item d-flex justify-content-between align-items-center">
@@ -92,12 +92,6 @@
                                         <div class="list-group-item d-flex justify-content-between align-items-center">
                                             <span><i class="fas fa-credit-card me-2"></i>Subscriptions</span>
                                             <span class="badge bg-warning rounded-pill">{{ usage.subscriptions }}</span>
-                                        </div>
-                                    {% endif %}
-                                    {% if usage.work_logs > 0 %}
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span><i class="fas fa-briefcase me-2"></i>Work Logs</span>
-                                            <span class="badge bg-info rounded-pill">{{ usage.work_logs }}</span>
                                         </div>
                                     {% endif %}
                                 </div>

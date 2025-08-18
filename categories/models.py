@@ -30,8 +30,7 @@ class Category(models.Model):
         return (
             self.expense_set.exists() or
             self.income_set.exists() or
-            self.subscription_set.exists() or
-            self.worklog_set.exists()
+            self.subscription_set.exists()
         )
     
     def get_usage_count(self):
@@ -39,8 +38,7 @@ class Category(models.Model):
         return (
             self.expense_set.count() +
             self.income_set.count() +
-            self.subscription_set.count() +
-            self.worklog_set.count()
+            self.subscription_set.count()
         )
     
     def get_usage_breakdown(self):
@@ -49,5 +47,4 @@ class Category(models.Model):
             'expenses': self.expense_set.count(),
             'income': self.income_set.count(),
             'subscriptions': self.subscription_set.count(),
-            'work_logs': self.worklog_set.count(),
         }

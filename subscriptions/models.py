@@ -12,7 +12,6 @@ class Subscription(BaseFinancialModel):
     
     name = models.CharField(max_length=200)
     billing_cycle = models.CharField(max_length=20, choices=BILLING_CYCLE_CHOICES, default='MONTHLY')
-    start_date = models.DateField()
     next_billing_date = models.DateField()
     
     class Meta:
@@ -22,5 +21,5 @@ class Subscription(BaseFinancialModel):
     
     def save(self, *args, **kwargs):
         if not self.next_billing_date:
-            self.next_billing_date = self.start_date
+            self.next_billing_date = self.date
         super().save(*args, **kwargs)

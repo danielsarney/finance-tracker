@@ -65,72 +65,43 @@
                     </div>
                 </div>
 
-                {% if is_used %}
-                    <!-- Usage Warning -->
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>This category is currently in use!</strong>
-                        <br>
-                        <strong>Total items using this category: {{ usage_breakdown.expenses|add:usage_breakdown.income|add:usage_breakdown.subscriptions|add:usage_breakdown.work_logs }}</strong>
-                        
-                        {% if usage_breakdown.expenses > 0 %}
-                            <br>• {{ usage_breakdown.expenses }} expense{{ usage_breakdown.expenses|pluralize }}
-                        {% endif %}
-                        {% if usage_breakdown.income > 0 %}
-                            <br>• {{ usage_breakdown.income }} income entr{{ usage_breakdown.income|pluralize:"y,ies" }}
-                        {% endif %}
-                        {% if usage_breakdown.subscriptions > 0 %}
-                            <br>• {{ usage_breakdown.subscriptions }} subscription{{ usage_breakdown.subscriptions|pluralize }}
-                        {% endif %}
-                        {% if usage_breakdown.work_logs > 0 %}
-                            <br>• {{ usage_breakdown.work_logs }} work log{{ usage_breakdown.work_logs|pluralize }}
-                        {% endif %}
-                        
-                        <br><br>
-                        <strong>You must select a replacement category to move all these items to before deletion.</strong>
-                    </div>
-
-                    <!-- Replacement Category Selection -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h6 class="mb-0">
-                                <i class="fas fa-exchange-alt me-2"></i>Select Replacement Category
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label for="replacement_category" class="form-label">
-                                    Move all items to this category: <span class="text-danger">*</span>
-                                </label>
-                                <select name="replacement_category" id="replacement_category" class="form-select" required>
-                                    <option value="">-- Select a category --</option>
-                                    {% for replacement_category in replacement_categories %}
-                                        <option value="{{ replacement_category.pk }}">
-                                            <i class="{{ replacement_category.get_icon_class }}" style="color: {{ replacement_category.color }};"></i>
-                                            {{ replacement_category.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <div class="form-text">
-                                    All items currently using "{{ category.name }}" will be moved to the selected category.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% else %}
-                    <!-- No Usage Info -->
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        This category is not currently being used by any items.
-                    </div>
-                {% endif %}
-                
                 <!-- Action Buttons -->
                 <form method="post">
                     {% csrf_token %}
+                    
+                    {% if is_used %}
+                        <!-- Replacement Category Selection -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-exchange-alt me-2"></i>Select Replacement Category
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="replacement_category" class="form-label">
+                                        Move all items to this category: <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="replacement_category" id="replacement_category" class="form-select" required>
+                                        <option value="">-- Select a category --</option>
+                                        {% for replacement_category in replacement_categories %}
+                                            <option value="{{ replacement_category.pk }}">
+                                                <i class="{{ replacement_category.get_icon_class }}" style="color: {{ replacement_category.color }};"></i>
+                                                {{ replacement_category.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">
+                                        All items currently using "{{ category.name }}" will be moved to the selected category.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-danger" {% if is_used %}disabled{% endif %} id="deleteBtn">
-                            <i class="fas fa-trash me-2"></i>Delete Category
+                            <i class="fas fa-trash me-2"></i>{% if is_used %}Delete Category & Move Items{% else %}Delete Category{% endif %}
                         </button>
                         <a href="{% url 'categories:category_detail' category.pk %}" class="btn btn-outline-secondary">
                             <i class="fas fa-times me-2"></i>Cancel
