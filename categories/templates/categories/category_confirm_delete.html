@@ -112,26 +112,4 @@
         </div>
     </div>
 </div>
-
-{% if is_used %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const replacementSelect = document.getElementById('replacement_category');
-    const deleteBtn = document.getElementById('deleteBtn');
-    
-    function updateDeleteButton() {
-        if (replacementSelect.value && replacementSelect.value !== '') {
-            deleteBtn.disabled = false;
-            deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Category & Move Items';
-        } else {
-            deleteBtn.disabled = true;
-            deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Category';
-        }
-    }
-    
-    replacementSelect.addEventListener('change', updateDeleteButton);
-    updateDeleteButton(); // Initial state
-});
-</script>
-{% endif %}
 {% endblock %}

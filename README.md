@@ -44,7 +44,7 @@ Finance Tracker is a full-featured personal finance management application built
 
 2. **Create and activate virtual environment**
    ```bash
-   python -m venv venv
+   python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
@@ -65,16 +65,21 @@ Finance Tracker is a full-featured personal finance management application built
 
 6. **Run database migrations**
    ```bash
-   python manage.py migrate
+   python3 manage.py migrate
    ```
 
 7. **Run the development server**
    ```bash
-   python manage.py runserver
+   python3 manage.py runserver
    ```
 
 8. **Access the application**
    Open your browser and navigate to `http://127.0.0.1:8000/`
+
+9. **Run Tests**
+   ```
+   python3 manage.py test
+   ```
 
 ### Default URLs
 - **Main Dashboard**: `/`

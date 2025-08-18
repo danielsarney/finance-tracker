@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSmoothScrolling();
     initializeFormAutoSave();
     initializeSubscriptionCalculator();
+    initializeCategoryDeleteConfirmation();
 });
 
 // Bootstrap Components Initialization
@@ -211,10 +212,14 @@ function initializeFormAutoSave() {
 
 // Subscription Billing Date Calculator
 function initializeSubscriptionCalculator() {
-    // Look for subscription form fields by their actual names
-    var dateField = document.querySelector('input[name="date"]');
-    var billingCycleField = document.querySelector('select[name="billing_cycle"]');
-    var nextBillingDateField = document.querySelector('input[name="next_billing_date"]');
+    // Look for subscription form fields by their actual names or Django form IDs
+    var dateField = document.querySelector('input[name="date"]') || 
+                   document.querySelector('input[id*="date"]') ||
+                   document.querySelector('input[type="date"]');
+    var billingCycleField = document.querySelector('select[name="billing_cycle"]') || 
+                           document.querySelector('select[id*="billing_cycle"]');
+    var nextBillingDateField = document.querySelector('input[name="next_billing_date"]') || 
+                               document.querySelector('input[id*="next_billing_date"]');
 
     if (dateField && billingCycleField && nextBillingDateField) {
         function calculateNextBillingDate() {
@@ -262,6 +267,27 @@ function initializeSubscriptionCalculator() {
         if (dateField.value && billingCycleField.value) {
             calculateNextBillingDate();
         }
+    }
+}
+
+// Category Deletion Confirmation
+function initializeCategoryDeleteConfirmation() {
+    const replacementSelect = document.getElementById('replacement_category');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    if (replacementSelect && deleteBtn) {
+        function updateDeleteButton() {
+            if (replacementSelect.value && replacementSelect.value !== '') {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Category & Move Items';
+            } else {
+                deleteBtn.disabled = true;
+                deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Category';
+            }
+        }
+        
+        replacementSelect.addEventListener('change', updateDeleteButton);
+        updateDeleteButton(); // Initial state
     }
 }
 
