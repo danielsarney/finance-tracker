@@ -26,10 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Development settings
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = os.getenv('DEBUG')
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
-CSRF_TRUSTED_ORIGINS = [os.getenv("CSRF_TRUSTED_ORIGINS")]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
+CSRF_TRUSTED_ORIGINS = [os.getenv("CSRF_TRUSTED_ORIGINS")] if os.getenv("CSRF_TRUSTED_ORIGINS") else []
 
 # Application definition
 
@@ -92,7 +92,7 @@ WSGI_APPLICATION = 'finance_tracker.wsgi.application'
 
 # Database
 # Use DATABASE_URL for production, individual settings for development
-if os.getenv('DATABASE_URL') and not DEBUG:
+if os.getenv('DATABASE_URL'):
     # Production: Use DATABASE_URL (Neon)
     DATABASES = {
         'default': dj_database_url.config(
@@ -165,6 +165,15 @@ else:
 
 # Make sure Django knows it's behind Render's proxy and uses HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
