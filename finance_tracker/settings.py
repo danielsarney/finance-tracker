@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from re import split
 from dotenv import load_dotenv
 import dj_database_url
 
@@ -23,12 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Development settings
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-development-key-change-in-production')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = os.getenv('DEBUG', 'False') == 'true'
+DEBUG = os.getenv('DEBUG')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if os.getenv('CSRF_TRUSTED_ORIGINS') else []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+CSRF_TRUSTED_ORIGINS = [os.getenv("CSRF_TRUSTED_ORIGINS")]
 
 # Application definition
 
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     'subscriptions',
     'work',
     'dashboard',
+    'user_profile',
 
 ]
 
@@ -56,7 +58,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',  # Disabled for development
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -89,8 +91,9 @@ WSGI_APPLICATION = 'finance_tracker.wsgi.application'
 
 
 # Database
-# Prefer DATABASE_URL (Neon), else fall back to individual env vars
-if os.getenv('DATABASE_URL'):
+# Use DATABASE_URL for production, individual settings for development
+if os.getenv('DATABASE_URL') and not DEBUG:
+    # Production: Use DATABASE_URL (Neon)
     DATABASES = {
         'default': dj_database_url.config(
             env='DATABASE_URL',
@@ -99,15 +102,16 @@ if os.getenv('DATABASE_URL'):
         )
     }
 else:
+    # Development: Use individual settings without SSL requirement
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME'),
-            'USER': os.getenv('DB_USER'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'HOST': os.getenv('DB_HOST'),
-            'PORT': os.getenv('DB_PORT'),
-            'OPTIONS': {'sslmode': 'require'} if os.getenv('DB_HOST') else {},
+            'NAME': os.getenv('DB_NAME', 'finance_tracker'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+            'OPTIONS': {},  # No SSL requirement for local development
         }
     }
 

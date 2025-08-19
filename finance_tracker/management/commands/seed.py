@@ -10,6 +10,7 @@ from expenses.models import Expense
 from income.models import Income
 from subscriptions.models import Subscription
 from work.models import WorkLog
+from user_profile.models import UserProfile
 
 
 class Command(BaseCommand):
@@ -75,6 +76,9 @@ class Command(BaseCommand):
         
         # Create work logs
         self.create_work_logs(user)
+        
+        # Create or update user profile
+        self.create_user_profile(user)
         
         self.stdout.write(self.style.SUCCESS('Data seeding completed successfully!'))
         self.stdout.write(f'Demo user credentials: {username} / demo123')
@@ -333,3 +337,40 @@ class Command(BaseCommand):
                     work_log.save()
         
         self.stdout.write(self.style.SUCCESS(f'Created work logs for user {user.username}'))
+
+    def create_user_profile(self, user):
+        """Create or update demo user profile"""
+        profile, created = UserProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'address_line_1': '123 Business Street',
+                'address_line_2': 'Suite 456, Floor 3',
+                'town': 'London',
+                'post_code': 'SW1A 1AA',
+                'email': 'demo@businessexample.com',
+                'phone': '+44 20 7946 0958',
+                'bank_name': 'Barclays Bank',
+                'account_name': 'Demo Business Ltd',
+                'account_number': '12345678',
+                'sort_code': '20-00-00',
+            }
+        )
+        
+        if created:
+            self.stdout.write(f'Created user profile for {user.username}')
+        else:
+            # Update existing profile with demo data
+            profile.address_line_1 = '123 Business Street'
+            profile.address_line_2 = 'Suite 456, Floor 3'
+            profile.town = 'London'
+            profile.post_code = 'SW1A 1AA'
+            profile.email = 'demo@businessexample.com'
+            profile.phone = '+44 20 7946 0958'
+            profile.bank_name = 'Barclays Bank'
+            profile.account_name = 'Demo Business Ltd'
+            profile.account_number = '12345678'
+            profile.sort_code = '20-00-00'
+            profile.save()
+            self.stdout.write(f'Updated user profile for {user.username}')
+        
+        self.stdout.write(self.style.SUCCESS(f'Profile data ready for user {user.username}'))
