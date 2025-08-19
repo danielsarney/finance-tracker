@@ -291,6 +291,8 @@ function initializeCategoryDeleteConfirmation() {
     }
 }
 
+
+
 // Utility functions
 window.FinanceTracker = {
     formatCurrency: function(amount, currency = 'GBP') {

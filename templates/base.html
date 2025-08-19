@@ -53,7 +53,6 @@
                                 <i class="fas fa-briefcase me-1"></i>Work Logs
                             </a>
                         </li>
-                        
                     </ul>
                     
                     <ul class="navbar-nav">
@@ -64,6 +63,9 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{% url 'categories:category_list' %}">
                                     <i class="fas fa-tags me-2"></i>Categories
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'clients:client_list' %}">
+                                    <i class="fas fa-users me-2"></i>Clients
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'user_profile:profile_view' %}">

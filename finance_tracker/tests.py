@@ -6,14 +6,14 @@ from datetime import date, datetime, timedelta
 
 from finance_tracker.factories import (
     UserFactory, CategoryFactory, ExpenseFactory,
-    IncomeFactory, SubscriptionFactory, WorkLogFactory
+    IncomeFactory
 )
 from .utils import (
     get_years_list, format_currency, format_date,
     calculate_monthly_cost, get_upcoming_dates,
     get_status_color, paginate_queryset
 )
-from .mixins import BaseFinancialModel, BaseListViewMixin
+from .mixins import BaseListViewMixin
 from .view_mixins import BaseCRUDMixin, create_crud_views
 from expenses.models import Expense
 from income.models import Income

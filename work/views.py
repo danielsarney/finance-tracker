@@ -1,8 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
 from .models import WorkLog
 from .forms import WorkLogForm
+from clients.models import Client
 from finance_tracker.view_mixins import create_crud_views
 
 # Create CRUD views using the factory function
@@ -28,6 +28,14 @@ def worklog_list(request):
     if status:
         queryset = queryset.filter(status=status)
     
+    # Apply client filter
+    client_id = request.GET.get('client')
+    if client_id:
+        try:
+            queryset = queryset.filter(company_client_id=client_id)
+        except (ValueError, Client.DoesNotExist):
+            pass
+    
     # Apply date filters
     month = request.GET.get('month')
     year = request.GET.get('year')
@@ -43,21 +51,53 @@ def worklog_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Add work-specific context
-    total_hours = queryset.aggregate(Sum('hours_worked'))['hours_worked__sum'] or 0
-    total_earnings = queryset.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    pending_amount = queryset.filter(status='PENDING').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    # Get all clients for the filter dropdown
+    clients = Client.objects.filter(user=request.user).order_by('company_name')
     
     context = {
         'page_obj': page_obj,
-        'total_hours': total_hours,
-        'total_earnings': total_earnings,
-        'pending_amount': pending_amount,
         'statuses': WorkLog.STATUS_CHOICES,
+        'clients': clients,
         'selected_status': status,
         'selected_month': month,
         'selected_year': year,
+        'selected_client_id': client_id,
         'years': mixin.get_years_list(),
     }
     
     return render(request, 'work/worklog_list.html', context)
+
+@login_required
+def worklog_create(request):
+    """Custom create view to handle client filtering."""
+    if request.method == 'POST':
+        form = WorkLogForm(request.POST)
+        if form.is_valid():
+            worklog = form.save(commit=False)
+            worklog.user = request.user
+            worklog.save()
+            return redirect('work:worklog_list')
+    else:
+        form = WorkLogForm()
+        form.set_user(request.user)
+    
+    return render(request, 'work/worklog_form.html', {'form': form, 'title': 'Add Work Log'})
+
+@login_required
+def worklog_update(request, pk):
+    """Custom update view to handle client filtering."""
+    try:
+        worklog = WorkLog.objects.get(pk=pk, user=request.user)
+    except WorkLog.DoesNotExist:
+        return redirect('work:worklog_list')
+    
+    if request.method == 'POST':
+        form = WorkLogForm(request.POST, instance=worklog)
+        if form.is_valid():
+            form.save()
+            return redirect('work:worklog_detail', pk=worklog.pk)
+    else:
+        form = WorkLogForm(instance=worklog)
+        form.set_user(request.user)
+    
+    return render(request, 'work/worklog_form.html', {'form': form, 'title': 'Edit Work Log'})

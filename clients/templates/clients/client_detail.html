@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ client.company_name }} - Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-building me-2"></i>{{ client.company_name }}
+        </h1>
+        <p class="text-muted">Client details and information</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'work:worklog_create' %}" class="btn btn-success me-2">
+            <i class="fas fa-plus me-2"></i>Add Work Log
+        </a>
+        <a href="{% url 'clients:client_update' client.pk %}" class="btn btn-warning">
+            <i class="fas fa-edit me-2"></i>Edit Client
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <!-- Client Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Client Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Company Name:</dt>
+                            <dd class="col-sm-8">{{ client.company_name }}</dd>
+                            
+                            <dt class="col-sm-4">Contact Person:</dt>
+                            <dd class="col-sm-8">{{ client.contact_person }}</dd>
+                            
+                            <dt class="col-sm-4">Hourly Rate:</dt>
+                            <dd class="col-sm-8">
+                                <span class="text-success fw-bold fs-5">£{{ client.hourly_rate }}/h</span>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8">{{ client.email }}</dd>
+                            
+                            {% if client.phone %}
+                                <dt class="col-sm-4">Phone:</dt>
+                                <dd class="col-sm-8">{{ client.phone }}</dd>
+                            {% endif %}
+                            
+                            <dt class="col-sm-4">Created:</dt>
+                            <dd class="col-sm-8">{{ client.created_at|date:"F j, Y" }}</dd>
+                        </dl>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dl class="row">
+                            <dt class="col-sm-2">Address:</dt>
+                            <dd class="col-sm-10">
+                                <p class="mb-1">{{ client.address_line_1 }}</p>
+                                {% if client.address_line_2 %}
+                                    <p class="mb-1">{{ client.address_line_2 }}</p>
+                                {% endif %}
+                                <p class="mb-0">{{ client.town }}, {{ client.post_code }}</p>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Work Logs for this Client -->
+        {% if client.work_logs.all %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-briefcase me-2"></i>Recent Work Logs
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Hours</th>
+                                <th>Rate</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for worklog in client.work_logs.all|slice:":5" %}
+                            <tr>
+                                <td>{{ worklog.work_date|date:"M j, Y" }}</td>
+                                <td>{{ worklog.hours_worked|floatformat:2 }}h</td>
+                                <td>£{{ worklog.hourly_rate|floatformat:2 }}/h</td>
+                                <td class="text-success fw-bold">£{{ worklog.total_amount|floatformat:2 }}</td>
+                                <td>
+                                    {% if worklog.status == 'PENDING' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif worklog.status == 'INVOICED' %}
+                                        <span class="badge bg-info">Invoiced</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'work:worklog_detail' worklog.pk %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if client.work_logs.count > 5 %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'work:worklog_list' %}?client={{ client.pk }}" class="btn btn-outline-primary">
+                        View All Work Logs for {{ client.company_name }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <i class="fas fa-briefcase fa-2x text-muted mb-3"></i>
+                <h6 class="text-muted">No work logs yet</h6>
+                <p class="text-muted">Start tracking work for this client by creating your first work log.</p>
+                <a href="{% url 'work:worklog_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Add First Work Log
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

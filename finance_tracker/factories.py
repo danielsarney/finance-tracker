@@ -83,11 +83,28 @@ class WorkLogFactory(DjangoModelFactory):
         model = 'work.WorkLog'
     
     user = factory.SubFactory(UserFactory)
-    company_client = factory.Faker('company')
+    company_client = factory.SubFactory('finance_tracker.factories.ClientFactory', user=factory.SelfAttribute('..user'))
     hours_worked = factory.Iterator([Decimal('4.0'), Decimal('8.0'), Decimal('6.5'), Decimal('10.0')])
     hourly_rate = factory.Iterator([Decimal('25.00'), Decimal('30.00'), Decimal('35.00'), Decimal('40.00')])
     work_date = factory.Faker('date_between', start_date='-1y', end_date='today')
     status = factory.Iterator(['PENDING', 'INVOICED', 'PAID'])
+
+
+class ClientFactory(DjangoModelFactory):
+    """Factory for creating Client instances."""
+    class Meta:
+        model = 'clients.Client'
+    
+    user = factory.SubFactory(UserFactory)
+    company_name = factory.Faker('company')
+    contact_person = factory.Faker('name')
+    email = factory.LazyAttribute(lambda obj: f'{obj.contact_person.lower().replace(" ", ".")}@{obj.company_name.lower().replace(" ", "").replace(",", "").replace(".", "")}.com')
+    phone = factory.LazyFunction(lambda: f"+44 {random.randint(100, 999)} {random.randint(100000, 999999)}")
+    address_line_1 = factory.Faker('street_address')
+    address_line_2 = factory.Faker('secondary_address')
+    town = factory.Faker('city')
+    post_code = factory.LazyFunction(lambda: f"{random.choice(['SW1A', 'W1A', 'M1', 'B1', 'L1', 'G1', 'EH1', 'CF10', 'BS1', 'LS1'])} {random.randint(1, 9)}{random.choice(['AA', 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR'])}")
+    hourly_rate = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True, min_value=25, max_value=100)
 
 # Specialized factories for testing scenarios
 class ExpenseWithSpecificDateFactory(ExpenseFactory):
@@ -175,3 +192,12 @@ class BatchWorkLogFactory:
             work_date = date(year, month, day)
             work_logs.append(WorkLogFactory(user=user, work_date=work_date, **kwargs))
         return work_logs
+
+
+class BatchClientFactory:
+    """Factory for creating multiple clients for a user."""
+    
+    @staticmethod
+    def create_batch_for_user(user, count=5, **kwargs):
+        """Create multiple clients for a specific user."""
+        return ClientFactory.create_batch(count, user=user, **kwargs)

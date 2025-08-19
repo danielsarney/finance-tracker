@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'work',
     'dashboard',
     'user_profile',
+    'clients',
 
 ]
 

@@ -25,4 +25,5 @@ urlpatterns = [
     path('subscriptions/', include('subscriptions.urls')),
     path('work/', include('work.urls')),
     path('profile/', include('user_profile.urls')),
+    path('clients/', include('clients.urls')),
 ]

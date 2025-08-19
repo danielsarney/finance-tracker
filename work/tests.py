@@ -6,10 +6,11 @@ from datetime import date, timedelta
 
 from finance_tracker.factories import (
     UserFactory, WorkLogFactory,
-    BatchWorkLogFactory
+    BatchWorkLogFactory, ClientFactory
 )
 from .models import WorkLog
 from .forms import WorkLogForm
+from clients.models import Client as ClientModel
 
 
 class WorkLogModelTest(TestCase):
@@ -24,7 +25,7 @@ class WorkLogModelTest(TestCase):
         """Test that a worklog can be created."""
         self.assertIsInstance(self.worklog, WorkLog)
         self.assertEqual(self.worklog.user, self.user)
-        self.assertIsInstance(self.worklog.company_client, str)
+        self.assertIsInstance(self.worklog.company_client, ClientModel)
         self.assertIsInstance(self.worklog.hours_worked, Decimal)
         self.assertIsInstance(self.worklog.hourly_rate, Decimal)
         self.assertIsInstance(self.worklog.total_amount, Decimal)
@@ -72,8 +73,8 @@ class WorkLogModelTest(TestCase):
     
     def test_worklog_company_client_field(self):
         """Test the company_client field."""
-        self.assertIsInstance(self.worklog.company_client, str)
-        self.assertTrue(len(self.worklog.company_client) <= 200)
+        self.assertIsInstance(self.worklog.company_client, ClientModel)
+        self.assertEqual(self.worklog.company_client.user, self.user)
     
     def test_worklog_hours_worked_field(self):
         """Test the hours_worked field."""
@@ -126,9 +127,10 @@ class WorkLogModelTest(TestCase):
     def test_worklog_save_method(self):
         """Test the custom save method."""
         # Create worklog without total_amount
+        client = ClientFactory(user=self.user)
         new_worklog = WorkLog(
             user=self.user,
-            company_client='Test Client',
+            company_client=client,
             hours_worked=Decimal('8.00'),
             hourly_rate=Decimal('25.00'),
             work_date=date.today(),
@@ -159,8 +161,9 @@ class WorkLogFormTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.user = UserFactory()
+        self.client = ClientFactory(user=self.user)
         self.form_data = {
-            'company_client': 'Test Company',
+            'company_client': self.client.id,
             'hours_worked': '8.00',
             'hourly_rate': '25.00',
             'work_date': '2024-01-15',
@@ -345,34 +348,13 @@ class WorkLogViewsTest(TestCase):
         
         # Check context
         self.assertIn('page_obj', response.context)
-        self.assertIn('total_hours', response.context)
-        self.assertIn('total_earnings', response.context)
-        self.assertIn('pending_amount', response.context)
         self.assertIn('statuses', response.context)
+        self.assertIn('clients', response.context)
         self.assertIn('years', response.context)
         
         # Check that worklogs are shown (through pagination)
         page_obj = response.context['page_obj']
         self.assertGreater(page_obj.paginator.count, 0)
-    
-    def test_worklog_list_view_calculations(self):
-        """Test that worklog calculations are correct."""
-        self.client.force_login(self.user)
-        response = self.client.get(reverse('work:worklog_list'))
-        
-        total_hours = response.context['total_hours']
-        total_earnings = response.context['total_earnings']
-        pending_amount = response.context['pending_amount']
-        
-        # Calculate expected values
-        all_worklogs = [self.worklog] + self.user_worklogs
-        expected_total_hours = sum(wl.hours_worked for wl in all_worklogs)
-        expected_total_earnings = sum(wl.total_amount for wl in all_worklogs)
-        expected_pending_amount = sum(wl.total_amount for wl in all_worklogs if wl.status == 'PENDING')
-        
-        self.assertEqual(total_hours, expected_total_hours)
-        self.assertEqual(total_earnings, expected_total_earnings)
-        self.assertEqual(pending_amount, expected_pending_amount)
     
     def test_worklog_list_view_filtering(self):
         """Test worklog list view filtering."""
@@ -423,8 +405,11 @@ class WorkLogViewsTest(TestCase):
         """Test creating a worklog with valid data."""
         self.client.force_login(self.user)
         
+        # Create a client first
+        client = ClientFactory(user=self.user)
+        
         form_data = {
-            'company_client': 'New Company',
+            'company_client': client.id,
             'hours_worked': '10.00',
             'hourly_rate': '30.00',
             'work_date': '2024-01-20',
@@ -442,7 +427,7 @@ class WorkLogViewsTest(TestCase):
         # Check that worklog was created
         new_worklog = WorkLog.objects.filter(
             user=self.user,
-            company_client='New Company',
+            company_client=client,
             hours_worked=Decimal('10.00'),
             hourly_rate=Decimal('30.00')
         ).first()
@@ -494,8 +479,11 @@ class WorkLogViewsTest(TestCase):
         """Test updating a worklog with valid data."""
         self.client.force_login(self.user)
         
+        # Create a new client for the update
+        new_client = ClientFactory(user=self.user)
+        
         form_data = {
-            'company_client': 'Updated Company',
+            'company_client': new_client.id,
             'hours_worked': '12.00',
             'hourly_rate': '35.00',
             'work_date': '2024-01-25',
@@ -515,7 +503,7 @@ class WorkLogViewsTest(TestCase):
         
         # Check that worklog was updated
         self.worklog.refresh_from_db()
-        self.assertEqual(self.worklog.company_client, 'Updated Company')
+        self.assertEqual(self.worklog.company_client, new_client)
         self.assertEqual(self.worklog.hours_worked, Decimal('12.00'))
         self.assertEqual(self.worklog.hourly_rate, Decimal('35.00'))
         self.assertEqual(self.worklog.status, 'INVOICED')
@@ -611,9 +599,13 @@ class WorkLogIntegrationTest(TestCase):
         """Test the complete worklog workflow: create, read, update, delete."""
         self.client.force_login(self.user)
         
+        # Create clients for testing
+        client1 = ClientFactory(user=self.user)
+        client2 = ClientFactory(user=self.user)
+        
         # 1. Create worklog
         form_data = {
-            'company_client': 'Test Company',
+            'company_client': client1.id,
             'hours_worked': '8.00',
             'hourly_rate': '25.00',
             'work_date': '2024-01-15',
@@ -631,7 +623,7 @@ class WorkLogIntegrationTest(TestCase):
         # Get the created worklog
         new_worklog = WorkLog.objects.filter(
             user=self.user,
-            company_client='Test Company',
+            company_client=client1,
             hours_worked=Decimal('8.00'),
             hourly_rate=Decimal('25.00')
         ).first()
@@ -650,7 +642,7 @@ class WorkLogIntegrationTest(TestCase):
         
         # 3. Update worklog
         update_data = {
-            'company_client': 'Updated Test Company',
+            'company_client': client2.id,
             'hours_worked': '10.00',
             'hourly_rate': '30.00',
             'work_date': '2024-01-20',
@@ -668,7 +660,7 @@ class WorkLogIntegrationTest(TestCase):
         
         # Check update
         new_worklog.refresh_from_db()
-        self.assertEqual(new_worklog.company_client, 'Updated Test Company')
+        self.assertEqual(new_worklog.company_client, client2)
         self.assertEqual(new_worklog.hours_worked, Decimal('10.00'))
         self.assertEqual(new_worklog.hourly_rate, Decimal('30.00'))
         self.assertEqual(new_worklog.status, 'INVOICED')
@@ -721,15 +713,18 @@ class WorkLogIntegrationTest(TestCase):
         """Test that worklog data maintains integrity across operations."""
         self.client.force_login(self.user)
         
+        # Create clients for testing
+        original_client = ClientFactory(user=self.user)
+        new_client = ClientFactory(user=self.user)
+        
         # Create worklog with specific data
-        original_client = 'Integrity Test Company'
         original_hours = Decimal('6.50')
         original_rate = Decimal('20.00')
         original_date = date(2024, 1, 10)
         original_status = 'PENDING'
         
         form_data = {
-            'company_client': original_client,
+            'company_client': original_client.id,
             'hours_worked': str(original_hours),
             'hourly_rate': str(original_rate),
             'work_date': original_date.strftime('%Y-%m-%d'),
@@ -757,14 +752,13 @@ class WorkLogIntegrationTest(TestCase):
         self.assertEqual(created_worklog.total_amount, expected_total)
         
         # Update with new data
-        new_client = 'Updated Integrity Company'
         new_hours = Decimal('8.00')
         new_rate = Decimal('25.00')
         new_date = date(2024, 1, 15)
         new_status = 'INVOICED'
         
         update_data = {
-            'company_client': new_client,
+            'company_client': new_client.id,
             'hours_worked': str(new_hours),
             'hourly_rate': str(new_rate),
             'work_date': new_date.strftime('%Y-%m-%d'),
@@ -802,9 +796,12 @@ class WorkLogIntegrationTest(TestCase):
         """Test the workflow of different statuses."""
         self.client.force_login(self.user)
         
+        # Create a client for testing
+        client = ClientFactory(user=self.user)
+        
         # Test creating worklog with PENDING status
         form_data_pending = {
-            'company_client': 'Pending Company',
+            'company_client': client.id,
             'hours_worked': '5.00',
             'hourly_rate': '15.00',
             'work_date': '2024-01-15',
@@ -819,14 +816,14 @@ class WorkLogIntegrationTest(TestCase):
         
         pending_worklog = WorkLog.objects.filter(
             user=self.user,
-            company_client='Pending Company'
+            company_client=client
         ).first()
         self.assertIsNotNone(pending_worklog)
         self.assertEqual(pending_worklog.status, 'PENDING')
         
         # Test updating to INVOICED status
         update_data_invoiced = {
-            'company_client': 'Pending Company',
+            'company_client': client.id,
             'hours_worked': '5.00',
             'hourly_rate': '15.00',
             'work_date': '2024-01-15',
@@ -849,7 +846,7 @@ class WorkLogIntegrationTest(TestCase):
         
         # Test updating to PAID status
         update_data_paid = {
-            'company_client': 'Pending Company',
+            'company_client': client.id,
             'hours_worked': '5.00',
             'hourly_rate': '15.00',
             'work_date': '2024-01-15',
@@ -873,9 +870,12 @@ class WorkLogIntegrationTest(TestCase):
         """Test that worklog calculations are accurate."""
         self.client.force_login(self.user)
         
+        # Create a client for testing
+        client = ClientFactory(user=self.user)
+        
         # Test creating worklog with specific hours and rate
         form_data = {
-            'company_client': 'Calculation Test Company',
+            'company_client': client.id,
             'hours_worked': '7.50',
             'hourly_rate': '22.50',
             'work_date': '2024-01-15',
@@ -890,7 +890,7 @@ class WorkLogIntegrationTest(TestCase):
         
         created_worklog = WorkLog.objects.filter(
             user=self.user,
-            company_client='Calculation Test Company'
+            company_client=client
         ).first()
         self.assertIsNotNone(created_worklog)
         
@@ -900,7 +900,7 @@ class WorkLogIntegrationTest(TestCase):
         
         # Test updating hours and rate
         update_data = {
-            'company_client': 'Calculation Test Company',
+            'company_client': client.id,
             'hours_worked': '10.00',
             'hourly_rate': '25.00',
             'work_date': '2024-01-15',

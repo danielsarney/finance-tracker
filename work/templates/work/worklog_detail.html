@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ worklog.company_client }} - Finance Tracker{% endblock %}
+{% block title %}{{ worklog.company_client.company_name }} - Finance Tracker{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
@@ -35,7 +35,11 @@
                     <div class="col-md-6">
                         <dl class="row">
                             <dt class="col-sm-4">Company/Client:</dt>
-                            <dd class="col-sm-8">{{ worklog.company_client }}</dd>
+                            <dd class="col-sm-8">
+                                <a href="{% url 'clients:client_detail' worklog.company_client.pk %}" class="text-decoration-none">
+                                    {{ worklog.company_client.company_name }}
+                                </a>
+                            </dd>
                             
                             <dt class="col-sm-4">Hours Worked:</dt>
                             <dd class="col-sm-8">
@@ -92,8 +96,6 @@
                     </div>
                 </div>
                 {% endif %}
-                
-
             </div>
         </div>
     </div>
