@@ -26,4 +26,5 @@ urlpatterns = [
     path('work/', include('work.urls')),
     path('profile/', include('user_profile.urls')),
     path('clients/', include('clients.urls')),
+    path('invoices/', include('invoices.urls')),
 ]

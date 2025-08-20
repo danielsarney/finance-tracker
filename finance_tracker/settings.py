@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'dashboard',
     'user_profile',
     'clients',
+    'invoices',
 
 ]
 

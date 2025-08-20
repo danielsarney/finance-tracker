@@ -134,7 +134,73 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Invoice Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Invoices</h6>
+                        <h3 class="mb-0">{{ total_invoices }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-file-invoice fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Outstanding</h6>
+                        <h3 class="mb-0">{{ outstanding_invoices }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Outstanding Amount</h6>
+                        <h3 class="mb-0">£{{ total_outstanding_amount|floatformat:2 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Work Hours</h6>
+                        <h3 class="mb-0">{{ total_work_hours|floatformat:1 }}h</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Quick Actions -->
@@ -251,6 +317,90 @@
                     {% endfor %}
                 {% else %}
                     <p class="text-muted">No pending payments</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Invoices and Pending Work -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice me-2"></i>Recent Invoices
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_invoices %}
+                    {% for invoice in recent_invoices %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ invoice.invoice_number }}</strong>
+                                <br><small class="text-muted">{{ invoice.client.company_name }} - {{ invoice.issue_date }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary">£{{ invoice.total_amount|floatformat:2 }}</span>
+                                <br><small class="text-muted">
+                                    {% if invoice.is_paid %}
+                                        <span class="text-success">Paid</span>
+                                    {% elif invoice.is_overdue %}
+                                        <span class="text-danger">Overdue</span>
+                                    {% else %}
+                                        <span class="text-warning">Outstanding</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'invoices:invoice_list' %}" class="btn btn-outline-primary btn-sm">
+                            View All Invoices
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No invoices yet</p>
+                    <div class="text-center">
+                        <a href="{% url 'invoices:invoice_create' %}" class="btn btn-outline-primary btn-sm">
+                            Create First Invoice
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-briefcase me-2"></i>Pending Work
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if pending_work %}
+                    {% for work in pending_work %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ work.company_client.company_name }}</strong>
+                                <br><small class="text-muted">{{ work.work_date }} - {{ work.hours_worked }}h</small>
+                            </div>
+                            <span class="badge bg-warning">£{{ work.total_amount|floatformat:2 }}</span>
+                        </div>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'work:worklog_list' %}" class="btn btn-outline-warning btn-sm">
+                            View All Work Logs
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No pending work</p>
+                    <div class="text-center">
+                        <a href="{% url 'work:worklog_create' %}" class="btn btn-outline-warning btn-sm">
+                            Add Work Log
+                        </a>
+                    </div>
                 {% endif %}
             </div>
         </div>

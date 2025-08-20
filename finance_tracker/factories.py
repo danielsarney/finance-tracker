@@ -106,6 +106,24 @@ class ClientFactory(DjangoModelFactory):
     post_code = factory.LazyFunction(lambda: f"{random.choice(['SW1A', 'W1A', 'M1', 'B1', 'L1', 'G1', 'EH1', 'CF10', 'BS1', 'LS1'])} {random.randint(1, 9)}{random.choice(['AA', 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR'])}")
     hourly_rate = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True, min_value=25, max_value=100)
 
+
+class UserProfileFactory(DjangoModelFactory):
+    """Factory for creating UserProfile instances."""
+    class Meta:
+        model = 'user_profile.UserProfile'
+    
+    user = factory.SubFactory(UserFactory)
+    address_line_1 = factory.Faker('street_address')
+    address_line_2 = factory.Faker('secondary_address')
+    town = factory.Faker('city')
+    post_code = factory.LazyFunction(lambda: f"{random.choice(['SW1A', 'W1A', 'M1', 'B1', 'L1', 'G1', 'EH1', 'CF10', 'BS1', 'LS1'])} {random.randint(1, 9)}{random.choice(['AA', 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR'])}")
+    phone = factory.LazyFunction(lambda: f"+44 {random.randint(100, 999)} {random.randint(100000, 999999)}")
+    email = factory.LazyAttribute(lambda obj: f'{obj.user.username}@example.com')
+    bank_name = factory.Faker('company')
+    account_name = factory.Faker('name')
+    account_number = factory.LazyFunction(lambda: f"{random.randint(10000000, 99999999)}")
+    sort_code = factory.LazyFunction(lambda: f"{random.randint(10, 99)}-{random.randint(10, 99)}-{random.randint(10, 99)}")
+
 # Specialized factories for testing scenarios
 class ExpenseWithSpecificDateFactory(ExpenseFactory):
     """Factory for creating expenses with a specific date."""

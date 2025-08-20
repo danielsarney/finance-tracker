@@ -6,6 +6,7 @@ from expenses.models import Expense
 from income.models import Income
 from subscriptions.models import Subscription
 from work.models import WorkLog
+from invoices.models import Invoice
 
 @login_required
 def dashboard(request):
@@ -118,6 +119,19 @@ def dashboard(request):
         status='PENDING'
     ).order_by('-work_date')[:5]
     
+    # Invoice summaries (always show current totals)
+    total_invoices = Invoice.objects.filter(user=request.user).count()
+    outstanding_invoices = Invoice.objects.filter(user=request.user).exclude(
+        line_items__work_log__status='PAID'
+    ).distinct().count()
+    total_outstanding_amount = sum(
+        invoice.total_amount for invoice in Invoice.objects.filter(user=request.user)
+        if not invoice.is_paid
+    )
+    
+    # Recent invoices
+    recent_invoices = Invoice.objects.filter(user=request.user).order_by('-issue_date')[:5]
+    
     # Generate years list for the filter
     years = list(range(2020, 2081))
     
@@ -145,6 +159,10 @@ def dashboard(request):
         'upcoming_renewals': upcoming_renewals,
         'pending_work': pending_work,
         'active_subscriptions': active_subscriptions,
+        'total_invoices': total_invoices,
+        'outstanding_invoices': outstanding_invoices,
+        'total_outstanding_amount': total_outstanding_amount,
+        'recent_invoices': recent_invoices,
     }
     
     return render(request, 'dashboard/dashboard.html', context)

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-invoice me-2"></i>{{ title }}
+        </h1>
+        <p class="text-muted">Create a new invoice for your client</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'invoices:invoice_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Invoices
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-title mb-3">
+                                <i class="fas fa-building me-2 text-primary"></i>Invoice Details
+                            </h5>
+                            <hr>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.client.id_for_label }}" class="form-label">
+                                        {{ form.client.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.client }}
+                                    {% if form.client.errors %}
+                                        <div class="text-danger">{{ form.client.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.issue_date.id_for_label }}" class="form-label">
+                                        {{ form.issue_date.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.issue_date }}
+                                    {% if form.issue_date.errors %}
+                                        <div class="text-danger">{{ form.issue_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                        {{ form.due_date.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.due_date }}
+                                    {% if form.due_date.errors %}
+                                        <div class="text-danger">{{ form.due_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Work Logs Selection - Full Width Row -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5 class="card-title mb-3">
+                                <i class="fas fa-briefcase me-2 text-success"></i>Work Logs Selection
+                            </h5>
+                            <hr>
+                            
+                            <!-- Available work logs for selected client -->
+                            <div id="work-logs-section" style="display: none;">
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>Available Work Logs:</strong> Select the work logs you want to include in this invoice.
+                                </div>
+                                <div id="work-logs-container">
+                                    <!-- This will be populated via JavaScript when client is selected -->
+                                </div>
+                                <div id="no-work-logs" style="display: none;">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        No pending work logs found for this client.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="select-client-prompt" class="text-center py-5">
+                                <i class="fas fa-hand-point-left fa-3x text-muted mb-3"></i>
+                                <h6 class="text-muted">Select a client to see available work logs</h6>
+                                <p class="text-muted">Choose a client from the dropdown above to get started</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-top text-center">
+                        <button type="submit" class="btn btn-success btn-lg" id="submit-btn" disabled>
+                            <i class="fas fa-file-invoice me-2"></i>{{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

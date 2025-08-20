@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSubscriptionCalculator();
     initializeCategoryDeleteConfirmation();
     initializeWorkLogHourlyRate();
+    initializeInvoiceForm(); // Add invoice form initialization
 });
 
 // Bootstrap Components Initialization
@@ -353,6 +354,122 @@ function initializeWorkLogHourlyRate() {
         console.error('Raw content:', clientsDataElement.textContent);
         console.error('Cleaned content:', clientsDataElement.textContent.trim());
     }
+}
+
+// Invoice Form Initialization
+function initializeInvoiceForm() {
+    const clientSelect = document.getElementById('id_client');
+    const workLogsSection = document.getElementById('work-logs-section');
+    const workLogsContainer = document.getElementById('work-logs-container');
+    const noWorkLogs = document.getElementById('no-work-logs');
+    const selectClientPrompt = document.getElementById('select-client-prompt');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    // Only initialize if we're on the invoice form page
+    if (!clientSelect) {
+        return;
+    }
+    
+    // When client is selected, show available work logs
+    clientSelect.addEventListener('change', function() {
+        const clientId = this.value;
+        
+        if (clientId) {
+            // Hide the prompt and show the work logs section
+            selectClientPrompt.style.display = 'none';
+            workLogsSection.style.display = 'block';
+            
+            // Fetch available work logs for this client
+            fetch(`/invoices/get-available-worklogs/${clientId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.work_logs.length > 0) {
+                        workLogsContainer.innerHTML = '';
+                        noWorkLogs.style.display = 'none';
+                        
+                        data.work_logs.forEach(worklog => {
+                            const div = document.createElement('div');
+                            div.className = 'form-check mb-3 p-4 border rounded bg-light work-log-card';
+                            
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.name = 'work_logs';
+                            checkbox.value = worklog.id;
+                            checkbox.className = 'form-check-input me-3';
+                            checkbox.id = `worklog-${worklog.id}`;
+                            
+                            const label = document.createElement('label');
+                            label.className = 'form-check-label fw-bold w-100';
+                            label.htmlFor = `worklog-${worklog.id}`;
+                            label.innerHTML = `
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <div class="text-primary fw-bold fs-6">${worklog.work_date}</div>
+                                            <small class="text-muted">Work Date</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="text-center">
+                                            <div class="text-info fw-bold fs-6">${worklog.hours_worked}h</div>
+                                            <small class="text-muted">Hours</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="text-center">
+                                            <div class="text-success fw-bold fs-6">£${worklog.hourly_rate}</div>
+                                            <small class="text-muted">Rate/Hour</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="text-center">
+                                            <div class="text-success fw-bold fs-5">£${worklog.total_amount}</div>
+                                            <small class="text-muted">Total</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <span class="badge bg-primary fs-6">Ready to Invoice</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            div.appendChild(checkbox);
+                            div.appendChild(label);
+                            workLogsContainer.appendChild(div);
+                        });
+                        
+                        // Enable submit button
+                        submitBtn.disabled = false;
+                        
+                    } else {
+                        workLogsContainer.innerHTML = '';
+                        noWorkLogs.style.display = 'block';
+                        submitBtn.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching work logs:', error);
+                    workLogsContainer.innerHTML = '';
+                    noWorkLogs.style.display = 'block';
+                    submitBtn.disabled = true;
+                });
+        } else {
+            // Show the prompt and hide the work logs section
+            selectClientPrompt.style.display = 'block';
+            workLogsSection.style.display = 'none';
+            submitBtn.disabled = true;
+        }
+    });
+    
+    // Enable/disable submit button based on work log selection
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'work_logs') {
+            const selectedWorkLogs = document.querySelectorAll('input[name="work_logs"]:checked');
+            submitBtn.disabled = selectedWorkLogs.length === 0;
+        }
+    });
 }
 
 
