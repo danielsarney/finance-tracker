@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+import json
 from .models import WorkLog
 from .forms import WorkLogForm
 from clients.models import Client
@@ -81,7 +82,15 @@ def worklog_create(request):
         form = WorkLogForm()
         form.set_user(request.user)
     
-    return render(request, 'work/worklog_form.html', {'form': form, 'title': 'Add Work Log'})
+    # Get all clients with their hourly rates for JavaScript
+    clients = Client.objects.filter(user=request.user).order_by('company_name')
+    clients_data = {str(client.id): str(client.hourly_rate) for client in clients}
+    
+    return render(request, 'work/worklog_form.html', {
+        'form': form, 
+        'title': 'Add Work Log',
+        'clients_data': json.dumps(clients_data)
+    })
 
 @login_required
 def worklog_update(request, pk):
@@ -100,4 +109,12 @@ def worklog_update(request, pk):
         form = WorkLogForm(instance=worklog)
         form.set_user(request.user)
     
-    return render(request, 'work/worklog_form.html', {'form': form, 'title': 'Edit Work Log'})
+    # Get all clients with their hourly rates for JavaScript
+    clients = Client.objects.filter(user=request.user).order_by('company_name')
+    clients_data = {str(client.id): str(client.hourly_rate) for client in clients}
+    
+    return render(request, 'work/worklog_form.html', {
+        'form': form, 
+        'title': 'Edit Work Log',
+        'clients_data': clients_data
+    })

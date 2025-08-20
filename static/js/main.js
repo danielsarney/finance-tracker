@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFormAutoSave();
     initializeSubscriptionCalculator();
     initializeCategoryDeleteConfirmation();
+    initializeWorkLogHourlyRate();
 });
 
 // Bootstrap Components Initialization
@@ -291,6 +292,68 @@ function initializeCategoryDeleteConfirmation() {
     }
 }
 
+// Work Log Hourly Rate Auto-population
+function initializeWorkLogHourlyRate() {
+    const companyClientSelect = document.getElementById('id_company_client');
+    const hourlyRateInput = document.getElementById('id_hourly_rate');
+    
+    // Check if we're on a work log form
+    if (!companyClientSelect || !hourlyRateInput) {
+        return;
+    }
+    
+    // Get the client data from the data attribute (we'll add this to the template)
+    const clientsDataElement = document.getElementById('clients-data');
+    if (!clientsDataElement) {
+        console.log('Clients data element not found - hourly rate auto-population disabled');
+        return;
+    }
+    
+    try {
+        // Get the text content and clean it up
+        let clientsDataText = clientsDataElement.textContent.trim();
+        
+        // Remove any HTML entities or extra whitespace
+        clientsDataText = clientsDataText.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+        
+        // Validate that we have valid JSON content
+        if (!clientsDataText || clientsDataText === 'null' || clientsDataText === 'undefined') {
+            console.warn('No clients data available');
+            return;
+        }
+        
+        // Additional cleanup for any remaining whitespace or newlines
+        clientsDataText = clientsDataText.replace(/\s+/g, ' ').trim();
+        
+        const clientsData = JSON.parse(clientsDataText);
+        
+        // Validate that clientsData is an object
+        if (typeof clientsData !== 'object' || clientsData === null) {
+            console.warn('Clients data is not a valid object');
+            return;
+        }
+        
+        // Function to update hourly rate when client changes
+        function updateHourlyRate() {
+            const selectedClientId = companyClientSelect.value;
+            if (selectedClientId && clientsData[selectedClientId]) {
+                hourlyRateInput.value = clientsData[selectedClientId];
+            }
+        }
+        
+        // Add event listener for client selection change
+        companyClientSelect.addEventListener('change', updateHourlyRate);
+        
+        // Also update on page load if a client is pre-selected (for edit forms)
+        if (companyClientSelect.value) {
+            updateHourlyRate();
+        }
+    } catch (error) {
+        console.error('Error parsing clients data:', error);
+        console.error('Raw content:', clientsDataElement.textContent);
+        console.error('Cleaned content:', clientsDataElement.textContent.trim());
+    }
+}
 
 
 // Utility functions
