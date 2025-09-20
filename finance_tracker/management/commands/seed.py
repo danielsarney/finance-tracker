@@ -11,6 +11,7 @@ from income.models import Income
 from subscriptions.models import Subscription
 from work.models import WorkLog
 from user_profile.models import UserProfile
+from clients.models import Client
 
 
 class Command(BaseCommand):
@@ -59,6 +60,7 @@ class Command(BaseCommand):
             Income.objects.filter(user=user).delete()
             Subscription.objects.filter(user=user).delete()
             WorkLog.objects.filter(user=user).delete()
+            Client.objects.filter(user=user).delete()
             Category.objects.all().delete()
             self.stdout.write(self.style.SUCCESS('Existing data cleared'))
 
@@ -74,8 +76,11 @@ class Command(BaseCommand):
         # Create subscriptions
         self.create_subscriptions(user, categories)
         
+        # Create clients
+        clients = self.create_clients(user)
+        
         # Create work logs
-        self.create_work_logs(user)
+        self.create_work_logs(user, clients)
         
         # Create or update user profile
         self.create_user_profile(user)
@@ -289,7 +294,90 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS(f'Created subscriptions for user {user.username}'))
 
-    def create_work_logs(self, user):
+    def create_clients(self, user):
+        """Create demo clients"""
+        client_data = [
+            {
+                'company_name': 'Tech Startup Ltd',
+                'contact_person': 'John Smith',
+                'email': 'john@techstartup.com',
+                'phone': '+44 20 1234 5678',
+                'address_line_1': '123 Innovation Street',
+                'address_line_2': 'Floor 5',
+                'town': 'London',
+                'post_code': 'EC1A 1BB',
+                'hourly_rate': 45.00,
+            },
+            {
+                'company_name': 'Digital Agency XYZ',
+                'contact_person': 'Sarah Johnson',
+                'email': 'sarah@digitalagency.com',
+                'phone': '+44 20 2345 6789',
+                'address_line_1': '456 Creative Lane',
+                'address_line_2': 'Studio 12',
+                'town': 'Manchester',
+                'post_code': 'M1 1AA',
+                'hourly_rate': 50.00,
+            },
+            {
+                'company_name': 'E-commerce Store',
+                'contact_person': 'Mike Brown',
+                'email': 'mike@ecommerce.com',
+                'phone': '+44 20 3456 7890',
+                'address_line_1': '789 Business Park',
+                'address_line_2': 'Unit 15',
+                'town': 'Birmingham',
+                'post_code': 'B1 1BB',
+                'hourly_rate': 40.00,
+            },
+            {
+                'company_name': 'Consulting Firm',
+                'contact_person': 'Emma Wilson',
+                'email': 'emma@consulting.com',
+                'phone': '+44 20 4567 8901',
+                'address_line_1': '321 Corporate Plaza',
+                'address_line_2': 'Suite 200',
+                'town': 'Edinburgh',
+                'post_code': 'EH1 1AA',
+                'hourly_rate': 75.00,
+            },
+            {
+                'company_name': 'Mobile App Developer',
+                'contact_person': 'David Lee',
+                'email': 'david@mobileapp.com',
+                'phone': '+44 20 5678 9012',
+                'address_line_1': '654 Tech Hub',
+                'address_line_2': 'Floor 3',
+                'town': 'Bristol',
+                'post_code': 'BS1 1BB',
+                'hourly_rate': 55.00,
+            },
+        ]
+        
+        clients = {}
+        for client_info in client_data:
+            client, created = Client.objects.get_or_create(
+                user=user,
+                company_name=client_info['company_name'],
+                defaults={
+                    'contact_person': client_info['contact_person'],
+                    'email': client_info['email'],
+                    'phone': client_info['phone'],
+                    'address_line_1': client_info['address_line_1'],
+                    'address_line_2': client_info['address_line_2'],
+                    'town': client_info['town'],
+                    'post_code': client_info['post_code'],
+                    'hourly_rate': client_info['hourly_rate'],
+                }
+            )
+            clients[client_info['company_name']] = client
+            if created:
+                self.stdout.write(f'Created client: {client.company_name}')
+        
+        self.stdout.write(self.style.SUCCESS(f'Created {len(clients)} clients'))
+        return clients
+
+    def create_work_logs(self, user, clients):
         """Create demo work logs"""
         work_data = [
             {'company_client': 'Tech Startup Ltd', 'hours_worked': 8.0, 'hourly_rate': 45.00},
@@ -318,7 +406,7 @@ class Command(BaseCommand):
                 
                 work_log = WorkLog.objects.create(
                     user=user,
-                    company_client=work_info['company_client'],
+                    company_client=clients[work_info['company_client']],
                     hours_worked=hours,
                     hourly_rate=hourly_rate,
                     total_amount=total_amount,
