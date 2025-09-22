@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 from datetime import date
 
 from .models import Invoice, InvoiceLineItem
@@ -11,11 +12,52 @@ from work.models import WorkLog
 
 @login_required
 def invoice_list(request):
-    """Display list of all invoices for the current user"""
+    """Display list of all invoices for the current user with filtering"""
+    # Get base queryset
     invoices = Invoice.objects.filter(user=request.user).order_by('-issue_date')
     
+    # Apply filters
+    client_id = request.GET.get('client')
+    status = request.GET.get('status')
+    invoice_number = request.GET.get('invoice_number')
+    
+    if client_id:
+        invoices = invoices.filter(client_id=client_id)
+    if invoice_number:
+        invoices = invoices.filter(invoice_number=invoice_number)
+    if status:
+        if status == 'paid':
+            invoices = invoices.filter(line_items__work_log__status='PAID').distinct()
+        elif status == 'overdue':
+            from django.utils import timezone
+            invoices = invoices.filter(
+                due_date__lt=timezone.now().date(),
+                line_items__work_log__status__in=['PENDING', 'INVOICED']
+            ).distinct()
+        elif status == 'outstanding':
+            invoices = invoices.filter(
+                line_items__work_log__status__in=['PENDING', 'INVOICED']
+            ).exclude(
+                line_items__work_log__status='PAID'
+            ).distinct()
+    
+    # Pagination
+    paginator = Paginator(invoices, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get filter options
+    clients = Client.objects.filter(user=request.user).order_by('company_name')
+    all_invoices = Invoice.objects.filter(user=request.user).order_by('-invoice_number')
+    
     context = {
-        'invoices': invoices,
+        'page_obj': page_obj,
+        'invoices': page_obj,  # For backward compatibility
+        'clients': clients,
+        'all_invoices': all_invoices,
+        'selected_client': client_id,
+        'selected_status': status,
+        'selected_invoice_number': invoice_number,
     }
     return render(request, 'invoices/invoice_list.html', context)
 
