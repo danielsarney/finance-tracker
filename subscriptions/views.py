@@ -76,14 +76,10 @@ def subscription_list(request):
     
     # Add subscription-specific context
     total_monthly_cost = filtered_queryset.aggregate(Sum('amount'))['amount__sum'] or 0
-    upcoming_renewals = filtered_queryset.filter(
-        next_billing_date__gte=timezone.now().date()
-    ).order_by('next_billing_date')[:5]
     categories = mixin.get_categories()
     
     context.update({
         'total_monthly_cost': total_monthly_cost,
-        'upcoming_renewals': upcoming_renewals,
         'categories': categories,
         'updated_subscriptions': updated_count,
     })

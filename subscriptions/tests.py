@@ -290,7 +290,6 @@ class SubscriptionViewsTest(TestCase):
         
         # Check context
         self.assertIn('total_monthly_cost', response.context)
-        self.assertIn('upcoming_renewals', response.context)
         self.assertIn('categories', response.context)
         # The view might use different context variable names
         self.assertIn('page_obj', response.context)
@@ -308,23 +307,6 @@ class SubscriptionViewsTest(TestCase):
         expected_total = sum(sub.amount for sub in [self.subscription] + self.user_subscriptions)
         self.assertEqual(total_monthly_cost, expected_total)
     
-    def test_subscription_list_view_upcoming_renewals(self):
-        """Test that upcoming renewals are calculated correctly."""
-        self.client.force_login(self.user)
-        response = self.client.get(reverse('subscriptions:subscription_list'))
-        
-        upcoming_renewals = response.context['upcoming_renewals']
-        # Should be a QuerySet of subscriptions ordered by next_billing_date
-        self.assertIsInstance(upcoming_renewals, (list, type(Subscription.objects.none())))
-        self.assertLessEqual(len(upcoming_renewals), 5)  # Max 5 upcoming renewals
-        
-        # Check that renewals are ordered by next_billing_date
-        if len(upcoming_renewals) > 1:
-            for i in range(len(upcoming_renewals) - 1):
-                self.assertLessEqual(
-                    upcoming_renewals[i].next_billing_date,
-                    upcoming_renewals[i + 1].next_billing_date
-                )
     
     def test_subscription_list_view_filtering(self):
         """Test subscription list view filtering."""
