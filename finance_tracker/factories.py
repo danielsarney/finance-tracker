@@ -47,6 +47,8 @@ class ExpenseFactory(DjangoModelFactory):
     amount = factory.Faker('pydecimal', left_digits=3, right_digits=2, positive=True)
     date = factory.Faker('date_between', start_date='-1y', end_date='today')
     category = factory.SubFactory(CategoryFactory)
+    payee = factory.Faker('company')
+    is_tax_deductible = factory.Faker('boolean')
 
 
 class IncomeFactory(DjangoModelFactory):

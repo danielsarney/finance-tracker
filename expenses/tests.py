@@ -32,14 +32,13 @@ class ExpenseModelTest(TestCase):
     
     def test_expense_string_representation(self):
         """Test the string representation of an expense."""
-        # The __str__ method now uses payee field, or falls back to model name
+        # The __str__ method uses description field (highest priority), then payee, then model name
         str_repr = str(self.expense)
         self.assertIsInstance(str_repr, str)
         self.assertIn(str(self.expense.amount), str_repr)
         self.assertIn(str(self.expense.date), str_repr)
-        # If payee exists, it should be in the string representation
-        if self.expense.payee:
-            self.assertIn(self.expense.payee, str_repr)
+        # The description should be in the string representation (highest priority)
+        self.assertIn(self.expense.description, str_repr)
     
     def test_expense_ordering(self):
         """Test that expenses are ordered by date and creation time."""
