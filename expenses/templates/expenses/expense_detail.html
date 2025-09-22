@@ -62,6 +62,15 @@
                             
                             <dt class="col-sm-4">Description:</dt>
                             <dd class="col-sm-8">{{ expense.description }}</dd>
+                            
+                            <dt class="col-sm-4">Tax Deductible:</dt>
+                            <dd class="col-sm-8">
+                                {% if expense.is_tax_deductible %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </dd>
                         </dl>
                     </div>
                 </div>
@@ -78,6 +87,4 @@
         </div>
     </div>
 </div>
-
-
 {% endblock %}

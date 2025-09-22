@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.utils import timezone
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 import random
 
@@ -15,13 +15,13 @@ from clients.models import Client
 
 
 class Command(BaseCommand):
-    help = 'Seed the application with demo data for testing'
+    help = 'Seed the application with demo data for testing (clears existing data by default)'
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--clear',
+            '--no-clear',
             action='store_true',
-            help='Clear existing data before seeding',
+            help='Skip clearing existing data before seeding (default: clear all data)',
         )
         parser.add_argument(
             '--user',
@@ -32,7 +32,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         username = options['user']
-        clear_existing = options['clear']
+        clear_existing = not options['no_clear']  # Default to True (clear data)
 
         self.stdout.write(self.style.SUCCESS(f'Starting to seed data for user: {username}'))
 
@@ -155,40 +155,47 @@ class Command(BaseCommand):
         """Create demo expenses"""
         expense_data = [
             # Food & Dining
-            {'description': 'Weekly grocery shopping', 'amount': 85.50, 'category': 'Groceries', 'payee': 'Tesco'},
-            {'description': 'Lunch at work', 'amount': 12.99, 'category': 'Restaurants', 'payee': 'Pret A Manger'},
-            {'description': 'Coffee and pastry', 'amount': 4.50, 'category': 'Coffee & Drinks', 'payee': 'Starbucks'},
-            {'description': 'Dinner with friends', 'amount': 45.00, 'category': 'Restaurants', 'payee': 'Nando\'s'},
-            {'description': 'Takeaway pizza', 'amount': 18.99, 'category': 'Food & Dining', 'payee': 'Domino\'s'},
+            {'description': 'Weekly grocery shopping', 'amount': 85.50, 'category': 'Groceries', 'payee': 'Tesco', 'is_tax_deductible': False},
+            {'description': 'Lunch at work', 'amount': 12.99, 'category': 'Restaurants', 'payee': 'Pret A Manger', 'is_tax_deductible': True},
+            {'description': 'Coffee and pastry', 'amount': 4.50, 'category': 'Coffee & Drinks', 'payee': 'Starbucks', 'is_tax_deductible': False},
+            {'description': 'Dinner with friends', 'amount': 45.00, 'category': 'Restaurants', 'payee': 'Nando\'s', 'is_tax_deductible': False},
+            {'description': 'Takeaway pizza', 'amount': 18.99, 'category': 'Food & Dining', 'payee': 'Domino\'s', 'is_tax_deductible': False},
             
             # Transportation
-            {'description': 'Fuel for car', 'amount': 65.00, 'category': 'Fuel', 'payee': 'Shell'},
-            {'description': 'Monthly parking permit', 'amount': 120.00, 'category': 'Parking', 'payee': 'City Council'},
-            {'description': 'Train ticket to London', 'amount': 35.50, 'category': 'Public Transport', 'payee': 'GWR'},
-            {'description': 'Uber ride', 'amount': 18.75, 'category': 'Transportation', 'payee': 'Uber'},
+            {'description': 'Fuel for car', 'amount': 65.00, 'category': 'Fuel', 'payee': 'Shell', 'is_tax_deductible': True},
+            {'description': 'Monthly parking permit', 'amount': 120.00, 'category': 'Parking', 'payee': 'City Council', 'is_tax_deductible': True},
+            {'description': 'Train ticket to London', 'amount': 35.50, 'category': 'Public Transport', 'payee': 'GWR', 'is_tax_deductible': True},
+            {'description': 'Uber ride', 'amount': 18.75, 'category': 'Transportation', 'payee': 'Uber', 'is_tax_deductible': True},
             
             # Shopping
-            {'description': 'New jeans', 'amount': 45.00, 'category': 'Clothing', 'payee': 'H&M'},
-            {'description': 'Phone charger', 'amount': 15.99, 'category': 'Electronics', 'payee': 'Amazon'},
-            {'description': 'Garden tools', 'amount': 32.50, 'category': 'Home & Garden', 'payee': 'B&Q'},
-            {'description': 'Birthday gift', 'amount': 28.00, 'category': 'Shopping', 'payee': 'John Lewis'},
+            {'description': 'New jeans', 'amount': 45.00, 'category': 'Clothing', 'payee': 'H&M', 'is_tax_deductible': False},
+            {'description': 'Phone charger', 'amount': 15.99, 'category': 'Electronics', 'payee': 'Amazon', 'is_tax_deductible': True},
+            {'description': 'Garden tools', 'amount': 32.50, 'category': 'Home & Garden', 'payee': 'B&Q', 'is_tax_deductible': False},
+            {'description': 'Birthday gift', 'amount': 28.00, 'category': 'Shopping', 'payee': 'John Lewis', 'is_tax_deductible': False},
             
             # Entertainment
-            {'description': 'Cinema tickets', 'amount': 24.00, 'category': 'Entertainment', 'payee': 'Odeon'},
-            {'description': 'Netflix subscription', 'amount': 10.99, 'category': 'Entertainment', 'payee': 'Netflix'},
-            {'description': 'New book', 'amount': 12.99, 'category': 'Books & Media', 'payee': 'Waterstones'},
-            {'description': 'Gaming headset', 'amount': 89.99, 'category': 'Gaming', 'payee': 'Game'},
+            {'description': 'Cinema tickets', 'amount': 24.00, 'category': 'Entertainment', 'payee': 'Odeon', 'is_tax_deductible': False},
+            {'description': 'Netflix subscription', 'amount': 10.99, 'category': 'Entertainment', 'payee': 'Netflix', 'is_tax_deductible': False},
+            {'description': 'New book', 'amount': 12.99, 'category': 'Books & Media', 'payee': 'Waterstones', 'is_tax_deductible': False},
+            {'description': 'Gaming headset', 'amount': 89.99, 'category': 'Gaming', 'payee': 'Game', 'is_tax_deductible': False},
             
             # Health & Fitness
-            {'description': 'Gym membership', 'amount': 45.00, 'category': 'Fitness', 'payee': 'PureGym'},
-            {'description': 'Prescription medication', 'amount': 9.35, 'category': 'Pharmacy', 'payee': 'Boots'},
-            {'description': 'Dental checkup', 'amount': 65.00, 'category': 'Healthcare', 'payee': 'Dental Practice'},
+            {'description': 'Gym membership', 'amount': 45.00, 'category': 'Fitness', 'payee': 'PureGym', 'is_tax_deductible': False},
+            {'description': 'Prescription medication', 'amount': 9.35, 'category': 'Pharmacy', 'payee': 'Boots', 'is_tax_deductible': False},
+            {'description': 'Dental checkup', 'amount': 65.00, 'category': 'Healthcare', 'payee': 'Dental Practice', 'is_tax_deductible': False},
             
             # Bills & Utilities
-            {'description': 'Electricity bill', 'amount': 89.50, 'category': 'Electricity', 'payee': 'British Gas'},
-            {'description': 'Internet bill', 'amount': 35.00, 'category': 'Internet & Phone', 'payee': 'Sky'},
-            {'description': 'Water bill', 'amount': 42.00, 'category': 'Water', 'payee': 'Thames Water'},
-            {'description': 'Mobile phone bill', 'amount': 28.00, 'category': 'Internet & Phone', 'payee': 'EE'},
+            {'description': 'Electricity bill', 'amount': 89.50, 'category': 'Electricity', 'payee': 'British Gas', 'is_tax_deductible': False},
+            {'description': 'Internet bill', 'amount': 35.00, 'category': 'Internet & Phone', 'payee': 'Sky', 'is_tax_deductible': True},
+            {'description': 'Water bill', 'amount': 42.00, 'category': 'Water', 'payee': 'Thames Water', 'is_tax_deductible': False},
+            {'description': 'Mobile phone bill', 'amount': 28.00, 'category': 'Internet & Phone', 'payee': 'EE', 'is_tax_deductible': True},
+            
+            # Business Expenses (Tax Deductible)
+            {'description': 'Office supplies', 'amount': 25.50, 'category': 'Shopping', 'payee': 'Staples', 'is_tax_deductible': True},
+            {'description': 'Professional development course', 'amount': 150.00, 'category': 'Entertainment', 'payee': 'Udemy', 'is_tax_deductible': True},
+            {'description': 'Business lunch with client', 'amount': 65.00, 'category': 'Restaurants', 'payee': 'The Ivy', 'is_tax_deductible': True},
+            {'description': 'Software license', 'amount': 89.99, 'category': 'Electronics', 'payee': 'Adobe', 'is_tax_deductible': True},
+            {'description': 'Co-working space', 'amount': 200.00, 'category': 'Bills & Utilities', 'payee': 'WeWork', 'is_tax_deductible': True},
         ]
         
         # Create expenses for the last 6 months
@@ -212,6 +219,7 @@ class Command(BaseCommand):
                     date=expense_date,
                     category=categories[expense_info['category']],
                     payee=expense_info['payee'],
+                    is_tax_deductible=expense_info['is_tax_deductible'],
                 )
         
         self.stdout.write(self.style.SUCCESS(f'Created expenses for user {user.username}'))

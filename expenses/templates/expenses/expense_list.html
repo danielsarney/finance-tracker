@@ -90,6 +90,7 @@
                             <th>Date</th>
                             <th>Payee</th>
                             <th>Category</th>
+                            <th>Tax Deductible</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -112,6 +113,13 @@
                                         </span>
                                     {% else %}
                                         <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if expense.is_tax_deductible %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
                                     {% endif %}
                                 </td>
                                 <td>

@@ -92,6 +92,22 @@
                         {% endif %}
                     </div>
                     
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_tax_deductible }}
+                            <label class="form-check-label" for="{{ form.is_tax_deductible.id_for_label }}">
+                                This expense is tax deductible
+                            </label>
+                            {% if form.is_tax_deductible.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.is_tax_deductible.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'expenses:expense_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Back to List
