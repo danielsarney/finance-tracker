@@ -27,4 +27,5 @@ urlpatterns = [
     path('profile/', include('user_profile.urls')),
     path('clients/', include('clients.urls')),
     path('invoices/', include('invoices.urls')),
+    path('mileage/', include('mileage.urls')),
 ]

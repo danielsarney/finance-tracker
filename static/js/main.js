@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSubscriptionCalculator();
     initializeCategoryDeleteConfirmation();
     initializeWorkLogHourlyRate();
-    initializeInvoiceForm(); // Add invoice form initialization
+    initializeInvoiceForm();
+    initializeMileageCalculator();
 });
 
 // Bootstrap Components Initialization
@@ -376,16 +377,16 @@ function initializeInvoiceForm() {
         
         if (clientId) {
             // Hide the prompt and show the work logs section
-            selectClientPrompt.style.display = 'none';
-            workLogsSection.style.display = 'block';
+            if (selectClientPrompt) selectClientPrompt.style.display = 'none';
+            if (workLogsSection) workLogsSection.style.display = 'block';
             
             // Fetch available work logs for this client
             fetch(`/invoices/get-available-worklogs/${clientId}/`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.work_logs.length > 0) {
-                        workLogsContainer.innerHTML = '';
-                        noWorkLogs.style.display = 'none';
+                        if (workLogsContainer) workLogsContainer.innerHTML = '';
+                        if (noWorkLogs) noWorkLogs.style.display = 'none';
                         
                         data.work_logs.forEach(worklog => {
                             const div = document.createElement('div');
@@ -437,29 +438,29 @@ function initializeInvoiceForm() {
                             
                             div.appendChild(checkbox);
                             div.appendChild(label);
-                            workLogsContainer.appendChild(div);
+                            if (workLogsContainer) workLogsContainer.appendChild(div);
                         });
                         
                         // Enable submit button
-                        submitBtn.disabled = false;
+                        if (submitBtn) submitBtn.disabled = false;
                         
                     } else {
-                        workLogsContainer.innerHTML = '';
-                        noWorkLogs.style.display = 'block';
-                        submitBtn.disabled = true;
+                        if (workLogsContainer) workLogsContainer.innerHTML = '';
+                        if (noWorkLogs) noWorkLogs.style.display = 'block';
+                        if (submitBtn) submitBtn.disabled = true;
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching work logs:', error);
-                    workLogsContainer.innerHTML = '';
-                    noWorkLogs.style.display = 'block';
-                    submitBtn.disabled = true;
+                    if (workLogsContainer) workLogsContainer.innerHTML = '';
+                    if (noWorkLogs) noWorkLogs.style.display = 'block';
+                    if (submitBtn) submitBtn.disabled = true;
                 });
         } else {
             // Show the prompt and hide the work logs section
-            selectClientPrompt.style.display = 'block';
-            workLogsSection.style.display = 'none';
-            submitBtn.disabled = true;
+            if (selectClientPrompt) selectClientPrompt.style.display = 'block';
+            if (workLogsSection) workLogsSection.style.display = 'none';
+            if (submitBtn) submitBtn.disabled = true;
         }
     });
     
@@ -470,6 +471,104 @@ function initializeInvoiceForm() {
             submitBtn.disabled = selectedWorkLogs.length === 0;
         }
     });
+}
+
+// Mileage Calculator
+function initializeMileageCalculator() {
+    // Look for mileage form elements
+    const milesInput = document.querySelector('input[id*="miles"]');
+    const claimPreview = document.getElementById('claim-preview');
+    const previewMiles = document.getElementById('preview-miles');
+    const previewRate = document.getElementById('preview-rate');
+    const previewTotal = document.getElementById('preview-total');
+    const clientSelect = document.querySelector('select[id*="client"]');
+    const endLocationInput = document.querySelector('input[id*="end_location"]');
+    
+    // Only initialize if we're on a mileage form page
+    if (!milesInput) {
+        return;
+    }
+    
+        // Client address auto-population
+        if (clientSelect && endLocationInput) {
+            // Get client data from the data attribute
+            const clientsDataElement = document.getElementById('clients-data');
+            const endAddressInput = document.querySelector('textarea[id*="end_address"]');
+            
+            if (clientsDataElement) {
+                try {
+                    const clientsDataText = clientsDataElement.textContent.trim();
+                    
+                    // Skip if empty or invalid
+                    if (!clientsDataText || clientsDataText === 'null' || clientsDataText === 'undefined' || clientsDataText === '{}') {
+                        return;
+                    }
+                    
+                    const clientsData = JSON.parse(clientsDataText);
+                    
+                    if (typeof clientsData === 'object' && clientsData !== null) {
+                        // Function to update end location and address when client changes
+                        function updateEndLocation() {
+                            const selectedClientId = clientSelect.value;
+                            if (selectedClientId && clientsData[selectedClientId]) {
+                                // Set end location to client company name
+                                endLocationInput.value = clientSelect.options[clientSelect.selectedIndex].text;
+                                // Set end address to client's full address
+                                if (endAddressInput) {
+                                    endAddressInput.value = clientsData[selectedClientId];
+                                }
+                            }
+                        }
+                        
+                        // Add event listener for client selection change
+                        clientSelect.addEventListener('change', updateEndLocation);
+                        
+                        // Also update on page load if a client is pre-selected (for edit forms)
+                        if (clientSelect.value) {
+                            updateEndLocation();
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not parse clients data for mileage form:', error);
+                    // Don't show error in console for missing data, just silently continue
+                }
+            }
+        }
+    
+    // Claim preview functionality (only if preview elements exist)
+    if (claimPreview && previewMiles && previewRate && previewTotal) {
+        function updateClaimPreview() {
+            const miles = parseFloat(milesInput.value);
+            if (miles > 0) {
+                // Make API call to calculate claim
+                fetch(`/mileage/api/calculate/?miles=${miles}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            claimPreview.style.display = 'none';
+                        } else {
+                            previewMiles.textContent = data.miles;
+                            previewRate.textContent = (data.effective_rate * 100).toFixed(1);
+                            previewTotal.textContent = data.total_claim.toFixed(2);
+                            claimPreview.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error calculating claim:', error);
+                        claimPreview.style.display = 'none';
+                    });
+            } else {
+                claimPreview.style.display = 'none';
+            }
+        }
+        
+        milesInput.addEventListener('input', updateClaimPreview);
+        
+        // Update preview on page load if miles field has a value
+        if (milesInput.value) {
+            updateClaimPreview();
+        }
+    }
 }
 
 

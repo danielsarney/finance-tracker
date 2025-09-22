@@ -126,6 +126,22 @@ class UserProfileFactory(DjangoModelFactory):
     account_number = factory.LazyFunction(lambda: f"{random.randint(10000000, 99999999)}")
     sort_code = factory.LazyFunction(lambda: f"{random.randint(10, 99)}-{random.randint(10, 99)}-{random.randint(10, 99)}")
 
+
+class MileageLogFactory(DjangoModelFactory):
+    """Factory for creating MileageLog instances."""
+    class Meta:
+        model = 'mileage.MileageLog'
+    
+    user = factory.SubFactory(UserFactory)
+    date = factory.Faker('date_between', start_date='-1y', end_date='today')
+    start_location = factory.Faker('city')
+    end_location = factory.Faker('city')
+    purpose = factory.Faker('sentence', nb_words=4)
+    miles = factory.Faker('pydecimal', left_digits=2, right_digits=1, positive=True, min_value=1, max_value=100)
+    client = factory.SubFactory(ClientFactory, user=factory.SelfAttribute('..user'))
+    start_address = factory.Faker('address')
+    end_address = factory.Faker('address')
+
 # Specialized factories for testing scenarios
 class ExpenseWithSpecificDateFactory(ExpenseFactory):
     """Factory for creating expenses with a specific date."""
@@ -221,3 +237,22 @@ class BatchClientFactory:
     def create_batch_for_user(user, count=5, **kwargs):
         """Create multiple clients for a specific user."""
         return ClientFactory.create_batch(count, user=user, **kwargs)
+
+
+class BatchMileageLogFactory:
+    """Factory for creating multiple mileage logs for a user."""
+    
+    @staticmethod
+    def create_batch_for_user(user, count=10, **kwargs):
+        """Create multiple mileage logs for a specific user."""
+        return MileageLogFactory.create_batch(count, user=user, **kwargs)
+    
+    @staticmethod
+    def create_batch_for_month(user, year, month, count=5, **kwargs):
+        """Create multiple mileage logs for a specific month."""
+        mileage_logs = []
+        for _ in range(count):
+            day = random.randint(1, 28)
+            mileage_date = date(year, month, day)
+            mileage_logs.append(MileageLogFactory(user=user, date=mileage_date, **kwargs))
+        return mileage_logs

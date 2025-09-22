@@ -12,6 +12,7 @@ from subscriptions.models import Subscription
 from work.models import WorkLog
 from user_profile.models import UserProfile
 from clients.models import Client
+from mileage.models import MileageLog
 
 
 class Command(BaseCommand):
@@ -60,6 +61,7 @@ class Command(BaseCommand):
             Income.objects.filter(user=user).delete()
             Subscription.objects.filter(user=user).delete()
             WorkLog.objects.filter(user=user).delete()
+            MileageLog.objects.filter(user=user).delete()
             Client.objects.filter(user=user).delete()
             Category.objects.all().delete()
             self.stdout.write(self.style.SUCCESS('Existing data cleared'))
@@ -81,6 +83,9 @@ class Command(BaseCommand):
         
         # Create work logs
         self.create_work_logs(user, clients)
+        
+        # Create mileage logs
+        self.create_mileage_logs(user, clients)
         
         # Create or update user profile
         self.create_user_profile(user)
@@ -433,6 +438,177 @@ class Command(BaseCommand):
                     work_log.save()
         
         self.stdout.write(self.style.SUCCESS(f'Created work logs for user {user.username}'))
+
+    def create_mileage_logs(self, user, clients):
+        """Create demo mileage logs"""
+        mileage_data = [
+            {
+                'start_location': 'Home',
+                'end_location': 'Tech Startup Ltd Office',
+                'purpose': 'Client meeting - project kickoff',
+                'miles': 15.5,
+                'client': 'Tech Startup Ltd'
+            },
+            {
+                'start_location': 'Tech Startup Ltd Office',
+                'end_location': 'Home',
+                'purpose': 'Return journey from client meeting',
+                'miles': 15.5,
+                'client': 'Tech Startup Ltd'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'Digital Agency XYZ Studio',
+                'purpose': 'Site visit and requirements gathering',
+                'miles': 25.3,
+                'client': 'Digital Agency XYZ'
+            },
+            {
+                'start_location': 'Digital Agency XYZ Studio',
+                'end_location': 'Home',
+                'purpose': 'Return journey from site visit',
+                'miles': 25.3,
+                'client': 'Digital Agency XYZ'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'E-commerce Store Warehouse',
+                'purpose': 'System installation and testing',
+                'miles': 18.7,
+                'client': 'E-commerce Store'
+            },
+            {
+                'start_location': 'E-commerce Store Warehouse',
+                'end_location': 'Home',
+                'purpose': 'Return journey from installation',
+                'miles': 18.7,
+                'client': 'E-commerce Store'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'Consulting Firm Office',
+                'purpose': 'Strategy session with client',
+                'miles': 32.1,
+                'client': 'Consulting Firm'
+            },
+            {
+                'start_location': 'Consulting Firm Office',
+                'end_location': 'Home',
+                'purpose': 'Return journey from strategy session',
+                'miles': 32.1,
+                'client': 'Consulting Firm'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'Mobile App Developer Office',
+                'purpose': 'Code review and technical discussion',
+                'miles': 22.8,
+                'client': 'Mobile App Developer'
+            },
+            {
+                'start_location': 'Mobile App Developer Office',
+                'end_location': 'Home',
+                'purpose': 'Return journey from code review',
+                'miles': 22.8,
+                'client': 'Mobile App Developer'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'Tech Startup Ltd Office',
+                'purpose': 'Progress review meeting',
+                'miles': 15.5,
+                'client': 'Tech Startup Ltd'
+            },
+            {
+                'start_location': 'Tech Startup Ltd Office',
+                'end_location': 'Home',
+                'purpose': 'Return journey from progress review',
+                'miles': 15.5,
+                'client': 'Tech Startup Ltd'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'Digital Agency XYZ Studio',
+                'purpose': 'Design presentation and feedback',
+                'miles': 25.3,
+                'client': 'Digital Agency XYZ'
+            },
+            {
+                'start_location': 'Digital Agency XYZ Studio',
+                'end_location': 'Home',
+                'purpose': 'Return journey from design presentation',
+                'miles': 25.3,
+                'client': 'Digital Agency XYZ'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'E-commerce Store Warehouse',
+                'purpose': 'Training session for staff',
+                'miles': 18.7,
+                'client': 'E-commerce Store'
+            },
+            {
+                'start_location': 'E-commerce Store Warehouse',
+                'end_location': 'Home',
+                'purpose': 'Return journey from training',
+                'miles': 18.7,
+                'client': 'E-commerce Store'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'Consulting Firm Office',
+                'purpose': 'Final project delivery',
+                'miles': 32.1,
+                'client': 'Consulting Firm'
+            },
+            {
+                'start_location': 'Consulting Firm Office',
+                'end_location': 'Home',
+                'purpose': 'Return journey from project delivery',
+                'miles': 32.1,
+                'client': 'Consulting Firm'
+            },
+            {
+                'start_location': 'Home',
+                'end_location': 'Mobile App Developer Office',
+                'purpose': 'Testing and debugging session',
+                'miles': 22.8,
+                'client': 'Mobile App Developer'
+            },
+            {
+                'start_location': 'Mobile App Developer Office',
+                'end_location': 'Home',
+                'purpose': 'Return journey from testing session',
+                'miles': 22.8,
+                'client': 'Mobile App Developer'
+            },
+        ]
+        
+        # Create mileage logs for the last 4 months
+        for i in range(4):
+            month_date = timezone.now().date().replace(day=1) - timedelta(days=i*30)
+            
+            for mileage_info in mileage_data:
+                # Randomize the date within the month
+                day = random.randint(1, 28)
+                mileage_date = month_date.replace(day=day)
+                
+                # Randomize miles slightly (±10%)
+                base_miles = Decimal(str(mileage_info['miles']))
+                variation = random.uniform(0.9, 1.1)
+                miles = round(base_miles * Decimal(str(variation)), 1)
+                
+                MileageLog.objects.create(
+                    user=user,
+                    date=mileage_date,
+                    start_location=mileage_info['start_location'],
+                    end_location=mileage_info['end_location'],
+                    purpose=mileage_info['purpose'],
+                    miles=miles,
+                    client=clients[mileage_info['client']],
+                )
+        
+        self.stdout.write(self.style.SUCCESS(f'Created mileage logs for user {user.username}'))
 
     def create_user_profile(self, user):
         """Create or update demo user profile"""

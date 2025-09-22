@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Mileage Summary - Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-chart-bar me-2"></i>Mileage Summary
+        </h1>
+        <p class="text-muted">View detailed mileage statistics and reports</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'mileage:mileage_list' %}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+        <a href="{% url 'mileage:mileage_create' %}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Log Mileage
+        </a>
+    </div>
+</div>
+
+<!-- Current Tax Year Summary -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-calendar-alt me-2"></i>
+            Current Tax Year Summary ({{ tax_year_summary.tax_year_start|date:"Y" }}/{{ tax_year_summary.tax_year_end|date:"Y" }})
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="text-center p-3 bg-primary text-white rounded">
+                    <h3 class="mb-1">{{ tax_year_summary.total_miles }}</h3>
+                    <small>Total Miles</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center p-3 bg-success text-white rounded">
+                    <h3 class="mb-1">£{{ tax_year_summary.total_claim|floatformat:2 }}</h3>
+                    <small>Total Claim</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center p-3 bg-info text-white rounded">
+                    <h3 class="mb-1">{{ tax_year_summary.miles_at_45p }}</h3>
+                    <small>Miles @ 45p</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center p-3 bg-warning text-white rounded">
+                    <h3 class="mb-1">{{ tax_year_summary.miles_at_25p }}</h3>
+                    <small>Miles @ 25p</small>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 text-center">
+            <small class="text-muted">
+                Tax Year: {{ tax_year_summary.tax_year_start|date:"d M Y" }} - {{ tax_year_summary.tax_year_end|date:"d M Y" }}
+                | {{ tax_year_summary.logs_count }} journeys logged
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Previous Tax Year Comparison -->
+{% if prev_tax_year_summary.total_miles > 0 %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-history me-2"></i>
+            Previous Tax Year ({{ prev_tax_year_summary.tax_year_start|date:"Y" }}/{{ prev_tax_year_summary.tax_year_end|date:"Y" }})
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="text-center p-3 bg-light rounded">
+                    <h4 class="mb-1">{{ prev_tax_year_summary.total_miles }}</h4>
+                    <small class="text-muted">Total Miles</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center p-3 bg-light rounded">
+                    <h4 class="mb-1">£{{ prev_tax_year_summary.total_claim|floatformat:2 }}</h4>
+                    <small class="text-muted">Total Claim</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center p-3 bg-light rounded">
+                    <h4 class="mb-1">{{ prev_tax_year_summary.miles_at_45p }}</h4>
+                    <small class="text-muted">Miles @ 45p</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center p-3 bg-light rounded">
+                    <h4 class="mb-1">{{ prev_tax_year_summary.miles_at_25p }}</h4>
+                    <small class="text-muted">Miles @ 25p</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Monthly Breakdown -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-chart-line me-2"></i>
+            Monthly Breakdown ({{ current_year }})
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for month_data in monthly_data %}
+            <div class="col-md-4 col-lg-3 mb-3">
+                <div class="card h-100 {% if month_data.total_miles > 0 %}border-primary{% endif %}">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">{{ month_data.month_name }}</h6>
+                        {% if month_data.total_miles > 0 %}
+                            <div class="mb-2">
+                                <strong class="text-primary">{{ month_data.total_miles }}</strong><br>
+                                <small class="text-muted">miles</small>
+                            </div>
+                            <div class="mb-2">
+                                <strong class="text-success">£{{ month_data.total_claim|floatformat:2 }}</strong><br>
+                                <small class="text-muted">claim</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-info">{{ month_data.journeys }} journeys</span>
+                            </div>
+                        {% else %}
+                            <div class="text-muted">
+                                <i class="fas fa-minus fa-2x mb-2"></i><br>
+                                No journeys
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- UK Mileage Rates Information -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            UK Mileage Allowance Rates
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Current Rates (2024/25)</h6>
+                <ul class="list-unstyled">
+                    <li><strong>First 10,000 miles:</strong> 45p per mile</li>
+                    <li><strong>Additional miles:</strong> 25p per mile</li>
+                </ul>
+                <p class="text-muted">
+                    These rates apply to cars and vans. Different rates may apply to motorcycles and bicycles.
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6>Important Notes</h6>
+                <ul class="text-muted small">
+                    <li>Tax year runs from 6 April to 5 April</li>
+                    <li>Rates are calculated on total annual mileage</li>
+                    <li>Only business journeys are claimable</li>
+                    <li>Keep detailed records for HMRC</li>
+                    <li>Rates may change annually</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
