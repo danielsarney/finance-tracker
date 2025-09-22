@@ -82,6 +82,41 @@
                                 </dl>
                             </div>
                         </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-4">Auto Renewed:</dt>
+                                    <dd class="col-sm-8">
+                                        {% if subscription.is_auto_renewed %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Yes
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times me-1"></i>No
+                                            </span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-4">Business Expense:</dt>
+                                    <dd class="col-sm-8">
+                                        {% if subscription.is_business_expense %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-briefcase me-1"></i>Yes
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-home me-1"></i>No
+                                            </span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 

@@ -268,14 +268,14 @@ class Command(BaseCommand):
     def create_subscriptions(self, user, categories):
         """Create demo subscriptions"""
         subscription_data = [
-            {'name': 'Netflix', 'amount': 10.99, 'category': 'Entertainment', 'billing_cycle': 'MONTHLY'},
-            {'name': 'Spotify Premium', 'amount': 9.99, 'category': 'Entertainment', 'billing_cycle': 'MONTHLY'},
-            {'name': 'Gym Membership', 'amount': 45.00, 'category': 'Fitness', 'billing_cycle': 'MONTHLY'},
-            {'name': 'Adobe Creative Suite', 'amount': 52.99, 'category': 'Electronics', 'billing_cycle': 'MONTHLY'},
-            {'name': 'Amazon Prime', 'amount': 8.99, 'category': 'Shopping', 'billing_cycle': 'MONTHLY'},
-            {'name': 'Microsoft 365', 'amount': 59.99, 'category': 'Electronics', 'billing_cycle': 'YEARLY'},
-            {'name': 'Car Insurance', 'amount': 85.00, 'category': 'Transportation', 'billing_cycle': 'MONTHLY'},
-            {'name': 'Home Insurance', 'amount': 45.00, 'category': 'Bills & Utilities', 'billing_cycle': 'MONTHLY'},
+            {'name': 'Netflix', 'amount': 10.99, 'category': 'Entertainment', 'billing_cycle': 'MONTHLY', 'is_auto_renewed': True, 'is_business_expense': False},
+            {'name': 'Spotify Premium', 'amount': 9.99, 'category': 'Entertainment', 'billing_cycle': 'MONTHLY', 'is_auto_renewed': True, 'is_business_expense': False},
+            {'name': 'Gym Membership', 'amount': 45.00, 'category': 'Fitness', 'billing_cycle': 'MONTHLY', 'is_auto_renewed': True, 'is_business_expense': False},
+            {'name': 'Adobe Creative Suite', 'amount': 52.99, 'category': 'Electronics', 'billing_cycle': 'MONTHLY', 'is_auto_renewed': True, 'is_business_expense': True},
+            {'name': 'Amazon Prime', 'amount': 8.99, 'category': 'Shopping', 'billing_cycle': 'MONTHLY', 'is_auto_renewed': True, 'is_business_expense': False},
+            {'name': 'Microsoft 365', 'amount': 59.99, 'category': 'Electronics', 'billing_cycle': 'YEARLY', 'is_auto_renewed': True, 'is_business_expense': True},
+            {'name': 'Car Insurance', 'amount': 85.00, 'category': 'Transportation', 'billing_cycle': 'MONTHLY', 'is_auto_renewed': True, 'is_business_expense': True},
+            {'name': 'Home Insurance', 'amount': 45.00, 'category': 'Bills & Utilities', 'billing_cycle': 'MONTHLY', 'is_auto_renewed': True, 'is_business_expense': False},
         ]
         
         for sub_info in subscription_data:
@@ -303,6 +303,8 @@ class Command(BaseCommand):
                 category=categories[sub_info['category']],
                 billing_cycle=sub_info['billing_cycle'],
                 next_billing_date=next_billing,
+                is_auto_renewed=sub_info['is_auto_renewed'],
+                is_business_expense=sub_info['is_business_expense'],
             )
         
         self.stdout.write(self.style.SUCCESS(f'Created subscriptions for user {user.username}'))

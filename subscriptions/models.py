@@ -13,6 +13,8 @@ class Subscription(BaseFinancialModel):
     name = models.CharField(max_length=200)
     billing_cycle = models.CharField(max_length=20, choices=BILLING_CYCLE_CHOICES, default='MONTHLY')
     next_billing_date = models.DateField()
+    is_auto_renewed = models.BooleanField(default=False, help_text="Whether this subscription automatically renews")
+    is_business_expense = models.BooleanField(default=False, help_text="Whether this subscription is a business expense")
     
     class Meta:
         verbose_name = 'Subscription'

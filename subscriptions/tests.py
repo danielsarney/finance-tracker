@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
+from django import forms
 from decimal import Decimal
 from datetime import date, timedelta
 
@@ -30,6 +31,8 @@ class SubscriptionModelTest(TestCase):
         self.assertIsInstance(self.subscription.date, date)
         self.assertIsInstance(self.subscription.billing_cycle, str)
         self.assertIsInstance(self.subscription.next_billing_date, date)
+        self.assertIsInstance(self.subscription.is_auto_renewed, bool)
+        self.assertIsInstance(self.subscription.is_business_expense, bool)
     
     def test_subscription_string_representation(self):
         """Test the string representation of a subscription."""
@@ -125,6 +128,40 @@ class SubscriptionModelTest(TestCase):
         self.assertIsNotNone(self.subscription.created_at)
         self.assertIsNotNone(self.subscription.updated_at)
         self.assertLessEqual(self.subscription.created_at, self.subscription.updated_at)
+    
+    def test_subscription_boolean_fields_defaults(self):
+        """Test that boolean fields have correct default values."""
+        # Test defaults for new subscription
+        new_subscription = Subscription(
+            user=self.user,
+            category=self.category,
+            name='Test Service',
+            amount=Decimal('10.00'),
+            date=date.today()
+        )
+        new_subscription.save()
+        
+        # Both boolean fields should default to False
+        self.assertFalse(new_subscription.is_auto_renewed)
+        self.assertFalse(new_subscription.is_business_expense)
+    
+    def test_subscription_boolean_fields_can_be_set(self):
+        """Test that boolean fields can be set to True."""
+        # Create subscription with boolean fields set to True
+        new_subscription = Subscription(
+            user=self.user,
+            category=self.category,
+            name='Test Service',
+            amount=Decimal('10.00'),
+            date=date.today(),
+            is_auto_renewed=True,
+            is_business_expense=True
+        )
+        new_subscription.save()
+        
+        # Both boolean fields should be True
+        self.assertTrue(new_subscription.is_auto_renewed)
+        self.assertTrue(new_subscription.is_business_expense)
 
 
 class SubscriptionFormTest(TestCase):
@@ -140,7 +177,9 @@ class SubscriptionFormTest(TestCase):
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
             'next_billing_date': '2024-02-15',
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': False,
+            'is_business_expense': False
         }
     
     def test_subscription_form_valid_data(self):
@@ -253,6 +292,39 @@ class SubscriptionFormTest(TestCase):
         # Check that all expected choices are present
         for choice in expected_choices:
             self.assertIn(choice, billing_cycle_field.choices)
+    
+    def test_subscription_form_boolean_fields(self):
+        """Test that boolean fields work correctly in the form."""
+        # Test with boolean fields set to True
+        form_data_with_booleans = self.form_data.copy()
+        form_data_with_booleans['is_auto_renewed'] = True
+        form_data_with_booleans['is_business_expense'] = True
+        
+        form = SubscriptionForm(data=form_data_with_booleans)
+        self.assertTrue(form.is_valid())
+        
+        # Test that the form fields exist
+        self.assertIn('is_auto_renewed', form.fields)
+        self.assertIn('is_business_expense', form.fields)
+        
+        # Test that the fields are boolean fields
+        self.assertIsInstance(form.fields['is_auto_renewed'], forms.BooleanField)
+        self.assertIsInstance(form.fields['is_business_expense'], forms.BooleanField)
+    
+    def test_subscription_form_boolean_fields_widgets(self):
+        """Test that boolean fields have correct widgets."""
+        form = SubscriptionForm()
+        
+        # Check that boolean fields use CheckboxInput widgets
+        self.assertIsInstance(form.fields['is_auto_renewed'].widget, forms.CheckboxInput)
+        self.assertIsInstance(form.fields['is_business_expense'].widget, forms.CheckboxInput)
+        
+        # Check widget attributes
+        auto_renewed_widget = form.fields['is_auto_renewed'].widget
+        business_expense_widget = form.fields['is_business_expense'].widget
+        
+        self.assertEqual(auto_renewed_widget.attrs['class'], 'form-check-input')
+        self.assertEqual(business_expense_widget.attrs['class'], 'form-check-input')
 
 
 class SubscriptionViewsTest(TestCase):
@@ -352,7 +424,9 @@ class SubscriptionViewsTest(TestCase):
             'billing_cycle': 'MONTHLY',
             'start_date': '2024-01-20',
             'next_billing_date': '2024-02-20',
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': True,
+            'is_business_expense': False
         }
         
         response = self.client.post(reverse('subscriptions:subscription_create'), form_data)
@@ -418,7 +492,9 @@ class SubscriptionViewsTest(TestCase):
             'billing_cycle': 'YEARLY',
             'start_date': '2024-01-25',
             'next_billing_date': '2025-01-25',
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': False,
+            'is_business_expense': True
         }
         
         response = self.client.post(
@@ -531,7 +607,9 @@ class SubscriptionIntegrationTest(TestCase):
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
             'next_billing_date': '2024-02-15',
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': True,
+            'is_business_expense': False
         }
         
         create_response = self.client.post(reverse('subscriptions:subscription_create'), form_data)
@@ -562,7 +640,9 @@ class SubscriptionIntegrationTest(TestCase):
             'date': '2024-01-20',
             'billing_cycle': 'YEARLY',
             'next_billing_date': '2025-01-20',
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': False,
+            'is_business_expense': True
         }
         
         update_response = self.client.post(
@@ -627,7 +707,9 @@ class SubscriptionIntegrationTest(TestCase):
             'date': original_date.strftime('%Y-%m-%d'),
             'billing_cycle': original_billing_cycle,
             'next_billing_date': original_next_billing_date.strftime('%Y-%m-%d'),
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': True,
+            'is_business_expense': False
         }
         
         # Create
@@ -658,7 +740,9 @@ class SubscriptionIntegrationTest(TestCase):
             'date': new_date.strftime('%Y-%m-%d'),
             'billing_cycle': new_billing_cycle,
             'next_billing_date': new_next_billing_date.strftime('%Y-%m-%d'),
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': False,
+            'is_business_expense': True
         }
         
         self.client.post(
@@ -694,7 +778,9 @@ class SubscriptionIntegrationTest(TestCase):
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
             'next_billing_date': '2024-02-15',
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': True,
+            'is_business_expense': False
         }
         
         response = self.client.post(reverse('subscriptions:subscription_create'), form_data_monthly)
@@ -714,7 +800,9 @@ class SubscriptionIntegrationTest(TestCase):
             'date': '2024-01-20',
             'billing_cycle': 'YEARLY',
             'next_billing_date': '2025-01-20',
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': False,
+            'is_business_expense': True
         }
         
         response = self.client.post(reverse('subscriptions:subscription_create'), form_data_yearly)
@@ -738,7 +826,9 @@ class SubscriptionIntegrationTest(TestCase):
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
             'next_billing_date': '2024-01-15',  # Same as date
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': True,
+            'is_business_expense': False
         }
         
         response = self.client.post(reverse('subscriptions:subscription_create'), form_data_same_date)
@@ -758,7 +848,9 @@ class SubscriptionIntegrationTest(TestCase):
             'date': '2024-01-15',
             'billing_cycle': 'MONTHLY',
             'next_billing_date': '2024-03-15',  # After date
-            'category': self.category.id
+            'category': self.category.id,
+            'is_auto_renewed': False,
+            'is_business_expense': True
         }
         
         response = self.client.post(reverse('subscriptions:subscription_create'), form_data_future_date)

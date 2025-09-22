@@ -100,6 +100,8 @@
                             <th>Billing Cycle</th>
                             <th>Category</th>
                             <th>Next Billing</th>
+                            <th>Auto Renewed</th>
+                            <th>Business</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -127,6 +129,28 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ subscription.next_billing_date|date:"M j, Y" }}</td>
+                                <td>
+                                    {% if subscription.is_auto_renewed %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Yes
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times me-1"></i>No
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if subscription.is_business_expense %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-briefcase me-1"></i>Yes
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-home me-1"></i>No
+                                        </span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <a href="{% url 'subscriptions:subscription_detail' subscription.pk %}" class="btn btn-outline-primary">

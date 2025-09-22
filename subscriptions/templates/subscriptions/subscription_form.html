@@ -108,6 +108,40 @@
                         </div>
                     </div>
                     
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                {{ form.is_auto_renewed }}
+                                <label for="{{ form.is_auto_renewed.id_for_label }}" class="form-check-label">
+                                    Auto Renewed
+                                </label>
+                                {% if form.is_auto_renewed.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.is_auto_renewed.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                {{ form.is_business_expense }}
+                                <label for="{{ form.is_business_expense.id_for_label }}" class="form-check-label">
+                                    Business Expense
+                                </label>
+                                {% if form.is_business_expense.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.is_business_expense.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'subscriptions:subscription_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Cancel
