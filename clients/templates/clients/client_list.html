@@ -1,108 +1,109 @@
 {% extends 'base.html' %}
-
 {% block title %}Clients - Finance Tracker{% endblock %}
-
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-users me-2"></i>Clients
-        </h1>
-        <p class="text-muted">Manage your client companies and their details</p>
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-users me-2"></i>Clients
+            </h1>
+            <p class="text-muted">Manage your client companies and their details</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'clients:client_create' %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Add Client
+            </a>
+        </div>
     </div>
-    <div class="col-md-4 text-end">
-        <a href="{% url 'clients:client_create' %}" class="btn btn-success">
-            <i class="fas fa-plus me-2"></i>Add Client
-        </a>
-    </div>
-</div>
-
-<!-- Filters -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-6">
-                <label for="search" class="form-label">Search</label>
-                <div class="input-group">
-                    <input type="text" name="search" id="search" class="form-control" 
-                           placeholder="Search clients..." 
-                           value="{{ search_query }}">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-2"></i>Search
-                    </button>
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label for="search" class="form-label">Search</label>
+                    <div class="input-group">
+                        <input type="text"
+                               name="search"
+                               id="search"
+                               class="form-control"
+                               placeholder="Search clients..."
+                               value="{{ search_query }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6 d-flex align-items-end">
-                <a href="{% url 'clients:client_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-times me-2"></i>Clear
-                </a>
-            </div>
-        </form>
+                <div class="col-md-6 d-flex align-items-end">
+                    <a href="{% url 'clients:client_list' %}"
+                       class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-
-<!-- Clients List -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Clients List</h5>
-    </div>
-    <div class="card-body">
-        {% if clients %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Company Name</th>
-                            <th>Contact Person</th>
-                            <th>Email</th>
-                            <th>Location</th>
-                            <th>Hourly Rate</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for client in clients %}
+    <!-- Clients List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Clients List</h5>
+        </div>
+        <div class="card-body">
+            {% if clients %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
                             <tr>
-                                <td>
-                                    <a href="{% url 'clients:client_detail' client.pk %}" class="text-decoration-none">
-                                        {{ client.company_name }}
-                                    </a>
-                                </td>
-                                <td>{{ client.contact_person }}</td>
-                                <td>{{ client.email }}</td>
-                                <td>{{ client.town }}, {{ client.post_code }}</td>
-                                <td class="text-success fw-bold">£{{ client.hourly_rate }}/h</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{% url 'clients:client_detail' client.pk %}" class="btn btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{% url 'clients:client_update' client.pk %}" class="btn btn-outline-warning">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    </div>
-                                </td>
+                                <th>Company Name</th>
+                                <th>Contact Person</th>
+                                <th>Email</th>
+                                <th>Location</th>
+                                <th>Hourly Rate</th>
+                                <th>Actions</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No clients found</h5>
-                <p class="text-muted">
-                    {% if search_query %}
-                        No clients match your search for "{{ search_query }}".
-                    {% else %}
-                        Start building your client base by adding your first client.
-                    {% endif %}
-                </p>
-                <a href="{% url 'clients:client_create' %}" class="btn btn-success">
-                    <i class="fas fa-plus me-2"></i>Add First Client
-                </a>
-            </div>
-        {% endif %}
+                        </thead>
+                        <tbody>
+                            {% for client in clients %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'clients:client_detail' client.pk %}"
+                                           class="text-decoration-none">{{ client.company_name }}</a>
+                                    </td>
+                                    <td>{{ client.contact_person }}</td>
+                                    <td>{{ client.email }}</td>
+                                    <td>{{ client.town }}, {{ client.post_code }}</td>
+                                    <td class="text-success fw-bold">£{{ client.hourly_rate }}/h</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'clients:client_detail' client.pk %}"
+                                               class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'clients:client_update' client.pk %}"
+                                               class="btn btn-outline-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No clients found</h5>
+                    <p class="text-muted">
+                        {% if search_query %}
+                            No clients match your search for "{{ search_query }}".
+                        {% else %}
+                            Start building your client base by adding your first client.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'clients:client_create' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Add First Client
+                    </a>
+                </div>
+            {% endif %}
+        </div>
     </div>
-</div>
 {% endblock %}

@@ -1,411 +1,412 @@
 {% extends 'base.html' %}
-
 {% block title %}Dashboard - Finance Tracker{% endblock %}
-
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-tachometer-alt me-2"></i>Financial Dashboard
-        </h1>
-        <p class="text-muted mb-3">
-            {% if selected_month and selected_year %}
-                {% if selected_month|length == 1 %}0{{ selected_month }}{% else %}{{ selected_month }}{% endif %}/{{ selected_year }} Overview
-            {% elif selected_year and not selected_month %}
-                {{ selected_year }} Overview (All Months)
-            {% elif selected_month and not selected_year %}
-                {% if selected_month|length == 1 %}0{{ selected_month }}{% else %}{{ selected_month }}{% endif %} Overview (All Years)
-            {% else %}
-                {% if current_month|length == 1 %}0{{ current_month }}{% else %}{{ current_month }}{% endif %}/{{ current_year }} Overview
-            {% endif %}
-        </p>
-        
-        <!-- Month/Year Filter -->
-        <div class="card">
-            <div class="card-body">
-                <form method="get" class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label for="month" class="form-label">Month</label>
-                        <select name="month" id="month" class="form-select">
-                            <option value="">All Months</option>
-                            <option value="1" {% if selected_month == '1' %}selected{% endif %}>January</option>
-                            <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
-                            <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
-                            <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
-                            <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
-                            <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
-                            <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
-                            <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
-                            <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
-                            <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
-                            <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
-                            <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="year" class="form-label">Year</label>
-                        <select name="year" id="year" class="form-select">
-                            <option value="">All Years</option>
-                            {% for year in years %}
-                                <option value="{{ year }}" {% if year|stringformat:"s" == selected_year %}selected{% endif %}>
-                                    {{ year }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-filter me-2"></i>Filter
-                        </button>
-                    </div>
-                    <div class="col-md-3">
-                        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary w-100">
-                            <i class="fas fa-times me-2"></i>Clear
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Financial Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card bg-success text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title">Total Income</h6>
-                        <h3 class="mb-0">£{{ total_income|floatformat:2 }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-pound-sign fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card bg-danger text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title">Total Expenses</h6>
-                        <h3 class="mb-0">£{{ total_expenses|floatformat:2 }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-credit-card fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card bg-warning text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title">Work Earnings</h6>
-                        <h3 class="mb-0">£{{ total_work_earnings|floatformat:2 }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-briefcase fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card bg-info text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title">Subscriptions</h6>
-                        <h3 class="mb-0">£{{ total_subscription_cost|floatformat:2 }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-sync fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Invoice Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card bg-primary text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title">Total Invoices</h6>
-                        <h3 class="mb-0">{{ total_invoices }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-file-invoice fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card bg-warning text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title">Outstanding</h6>
-                        <h3 class="mb-0">{{ outstanding_invoices }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-clock fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card bg-danger text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title">Outstanding Amount</h6>
-                        <h3 class="mb-0">£{{ total_outstanding_amount|floatformat:2 }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card bg-success text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title">Work Hours</h6>
-                        <h3 class="mb-0">{{ total_work_hours|floatformat:1 }}h</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-clock fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-plus-circle me-2"></i>Quick Actions
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-2">
-                        <a href="{% url 'expenses:expense_create' %}" class="btn btn-outline-danger w-100">
-                            <i class="fas fa-plus me-2"></i>Add Expense
-                        </a>
-                    </div>
-                    <div class="col-md-4 mb-2">
-                        <a href="{% url 'income:income_create' %}" class="btn btn-outline-success w-100">
-                            <i class="fas fa-plus me-2"></i>Add Income
-                        </a>
-                    </div>
-                    <div class="col-md-4 mb-2">
-                        <a href="{% url 'subscriptions:subscription_create' %}" class="btn btn-outline-info w-100">
-                            <i class="fas fa-plus me-2"></i>Add Subscription
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Transactions and Upcoming Renewals -->
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-history me-2"></i>Recent Transactions
-                </h5>
-            </div>
-            <div class="card-body">
-                <h6 class="text-success mb-3">Recent Income</h6>
-                {% if recent_income %}
-                    {% for income in recent_income %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ income.description }}</strong>
-                                <br><small class="text-muted">{{ income.date }}</small>
-                            </div>
-                            <span class="badge bg-success">£{{ income.amount|floatformat:2 }}</span>
-                        </div>
-                    {% endfor %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-tachometer-alt me-2"></i>Financial Dashboard
+            </h1>
+            <p class="text-muted mb-3">
+                {% if selected_month and selected_year %}
+                    {% if selected_month|length == 1 %}
+                        0{{ selected_month }}
+                    {% else %}
+                        {{ selected_month }}
+                    {% endif %}
+                    /{{ selected_year }} Overview
+                {% elif selected_year and not selected_month %}
+                    {{ selected_year }} Overview (All Months)
+                {% elif selected_month and not selected_year %}
+                    {% if selected_month|length == 1 %}
+                        0{{ selected_month }}
+                    {% else %}
+                        {{ selected_month }}
+                    {% endif %}
+                    Overview (All Years)
                 {% else %}
-                    <p class="text-muted">No recent income</p>
+                    {% if current_month|length == 1 %}
+                        0{{ current_month }}
+                    {% else %}
+                        {{ current_month }}
+                    {% endif %}
+                    /{{ current_year }} Overview
                 {% endif %}
-                
-                <hr>
-                
-                <h6 class="text-danger mb-3">Recent Expenses</h6>
-                {% if recent_expenses %}
-                    {% for expense in recent_expenses %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ expense.description }}</strong>
-                                <br><small class="text-muted">{{ expense.date }}</small>
-                            </div>
-                            <span class="badge bg-danger">£{{ expense.amount|floatformat:2 }}</span>
+            </p>
+            <!-- Month/Year Filter -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label for="month" class="form-label">Month</label>
+                            <select name="month" id="month" class="form-select">
+                                <option value="">All Months</option>
+                                <option value="1" {% if selected_month == '1' %}selected{% endif %}>January</option>
+                                <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
+                                <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
+                                <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
+                                <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
+                                <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
+                                <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
+                                <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
+                                <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
+                                <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
+                                <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
+                                <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
+                            </select>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted">No recent expenses</p>
-                {% endif %}
+                        <div class="col-md-3">
+                            <label for="year" class="form-label">Year</label>
+                            <select name="year" id="year" class="form-select">
+                                <option value="">All Years</option>
+                                {% for year in years %}
+                                    <option value="{{ year }}"
+                                            {% if year|stringformat:"s" == selected_year %}selected{% endif %}>
+                                        {{ year }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'dashboard:dashboard' %}"
+                               class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-calendar-alt me-2"></i>Upcoming Renewals
-                </h5>
+    <!-- Financial Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Income</h6>
+                            <h3 class="mb-0">£{{ total_income|floatformat:2 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-pound-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {% if upcoming_renewals %}
-                    {% for subscription in upcoming_renewals %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ subscription.name }}</strong>
-                                <br><small class="text-muted">Due: {{ subscription.next_billing_date }}</small>
-                            </div>
-                            <span class="badge bg-info">£{{ subscription.amount|floatformat:2 }}</span>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Expenses</h6>
+                            <h3 class="mb-0">£{{ total_expenses|floatformat:2 }}</h3>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted">No upcoming renewals</p>
-                {% endif %}
-                
-                <hr>
-                
-                <h6 class="text-warning mb-3">Pending Work Payments</h6>
-                {% if pending_work %}
-                    {% for work in pending_work %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ work.company_client }}</strong>
-                                <br><small class="text-muted">{{ work.work_date }}</small>
-                            </div>
-                            <span class="badge bg-warning">£{{ work.total_amount|floatformat:2 }}</span>
+                        <div class="align-self-center">
+                            <i class="fas fa-credit-card fa-2x"></i>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted">No pending payments</p>
-                {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Work Earnings</h6>
+                            <h3 class="mb-0">£{{ total_work_earnings|floatformat:2 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-briefcase fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Subscriptions</h6>
+                            <h3 class="mb-0">£{{ total_subscription_cost|floatformat:2 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-sync fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Recent Invoices and Pending Work -->
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-file-invoice me-2"></i>Recent Invoices
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if recent_invoices %}
-                    {% for invoice in recent_invoices %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ invoice.invoice_number }}</strong>
-                                <br><small class="text-muted">{{ invoice.client.company_name }} - {{ invoice.issue_date }}</small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-primary">£{{ invoice.total_amount|floatformat:2 }}</span>
-                                <br><small class="text-muted">
-                                    {% if invoice.is_paid %}
-                                        <span class="text-success">Paid</span>
-                                    {% elif invoice.is_overdue %}
-                                        <span class="text-danger">Overdue</span>
-                                    {% else %}
-                                        <span class="text-warning">Outstanding</span>
-                                    {% endif %}
-                                </small>
-                            </div>
+    <!-- Invoice Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Invoices</h6>
+                            <h3 class="mb-0">{{ total_invoices }}</h3>
                         </div>
-                    {% endfor %}
-                    <div class="text-center mt-3">
-                        <a href="{% url 'invoices:invoice_list' %}" class="btn btn-outline-primary btn-sm">
-                            View All Invoices
-                        </a>
+                        <div class="align-self-center">
+                            <i class="fas fa-file-invoice fa-2x"></i>
+                        </div>
                     </div>
-                {% else %}
-                    <p class="text-muted">No invoices yet</p>
-                    <div class="text-center">
-                        <a href="{% url 'invoices:invoice_create' %}" class="btn btn-outline-primary btn-sm">
-                            Create First Invoice
-                        </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Outstanding</h6>
+                            <h3 class="mb-0">{{ outstanding_invoices }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
                     </div>
-                {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Outstanding Amount</h6>
+                            <h3 class="mb-0">£{{ total_outstanding_amount|floatformat:2 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Work Hours</h6>
+                            <h3 class="mb-0">{{ total_work_hours|floatformat:1 }}h</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-briefcase me-2"></i>Pending Work
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if pending_work %}
-                    {% for work in pending_work %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ work.company_client.company_name }}</strong>
-                                <br><small class="text-muted">{{ work.work_date }} - {{ work.hours_worked }}h</small>
-                            </div>
-                            <span class="badge bg-warning">£{{ work.total_amount|floatformat:2 }}</span>
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'expenses:expense_create' %}"
+                               class="btn btn-outline-danger w-100">
+                                <i class="fas fa-plus me-2"></i>Add Expense
+                            </a>
                         </div>
-                    {% endfor %}
-                    <div class="text-center mt-3">
-                        <a href="{% url 'work:worklog_list' %}" class="btn btn-outline-warning btn-sm">
-                            View All Work Logs
-                        </a>
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'income:income_create' %}"
+                               class="btn btn-outline-success w-100">
+                                <i class="fas fa-plus me-2"></i>Add Income
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'subscriptions:subscription_create' %}"
+                               class="btn btn-outline-info w-100">
+                                <i class="fas fa-plus me-2"></i>Add Subscription
+                            </a>
+                        </div>
                     </div>
-                {% else %}
-                    <p class="text-muted">No pending work</p>
-                    <div class="text-center">
-                        <a href="{% url 'work:worklog_create' %}" class="btn btn-outline-warning btn-sm">
-                            Add Work Log
-                        </a>
-                    </div>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-
+    <!-- Recent Transactions and Upcoming Renewals -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Transactions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-success mb-3">Recent Income</h6>
+                    {% if recent_income %}
+                        {% for income in recent_income %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ income.description }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ income.date }}</small>
+                                </div>
+                                <span class="badge bg-success">£{{ income.amount|floatformat:2 }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent income</p>
+                    {% endif %}
+                    <hr>
+                    <h6 class="text-danger mb-3">Recent Expenses</h6>
+                    {% if recent_expenses %}
+                        {% for expense in recent_expenses %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ expense.description }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ expense.date }}</small>
+                                </div>
+                                <span class="badge bg-danger">£{{ expense.amount|floatformat:2 }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent expenses</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>Upcoming Renewals
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_renewals %}
+                        {% for subscription in upcoming_renewals %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ subscription.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">Due: {{ subscription.next_billing_date }}</small>
+                                </div>
+                                <span class="badge bg-info">£{{ subscription.amount|floatformat:2 }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No upcoming renewals</p>
+                    {% endif %}
+                    <hr>
+                    <h6 class="text-warning mb-3">Pending Work Payments</h6>
+                    {% if pending_work %}
+                        {% for work in pending_work %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ work.company_client }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ work.work_date }}</small>
+                                </div>
+                                <span class="badge bg-warning">£{{ work.total_amount|floatformat:2 }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No pending payments</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Recent Invoices and Pending Work -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-invoice me-2"></i>Recent Invoices
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_invoices %}
+                        {% for invoice in recent_invoices %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ invoice.invoice_number }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ invoice.client.company_name }} - {{ invoice.issue_date }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary">£{{ invoice.total_amount|floatformat:2 }}</span>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if invoice.is_paid %}
+                                            <span class="text-success">Paid</span>
+                                        {% elif invoice.is_overdue %}
+                                            <span class="text-danger">Overdue</span>
+                                        {% else %}
+                                            <span class="text-warning">Outstanding</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'invoices:invoice_list' %}"
+                               class="btn btn-outline-primary btn-sm">View All Invoices</a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No invoices yet</p>
+                        <div class="text-center">
+                            <a href="{% url 'invoices:invoice_create' %}"
+                               class="btn btn-outline-primary btn-sm">Create First Invoice</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-briefcase me-2"></i>Pending Work
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_work %}
+                        {% for work in pending_work %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ work.company_client.company_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ work.work_date }} - {{ work.hours_worked }}h</small>
+                                </div>
+                                <span class="badge bg-warning">£{{ work.total_amount|floatformat:2 }}</span>
+                            </div>
+                        {% endfor %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'work:worklog_list' %}"
+                               class="btn btn-outline-warning btn-sm">View All Work Logs</a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No pending work</p>
+                        <div class="text-center">
+                            <a href="{% url 'work:worklog_create' %}"
+                               class="btn btn-outline-warning btn-sm">Add Work Log</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

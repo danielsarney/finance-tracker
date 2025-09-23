@@ -1,99 +1,96 @@
 {% extends 'base.html' %}
-
 {% block title %}Categories - Finance Tracker{% endblock %}
-
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-tags me-2"></i>Categories
-        </h1>
-        <p class="text-muted">Manage your financial categories</p>
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-tags me-2"></i>Categories
+            </h1>
+            <p class="text-muted">Manage your financial categories</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'categories:category_create' %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Add Category
+            </a>
+        </div>
     </div>
-    <div class="col-md-4 text-end">
-        <a href="{% url 'categories:category_create' %}" class="btn btn-success">
-            <i class="fas fa-plus me-2"></i>Add Category
-        </a>
-    </div>
-</div>
-
-<!-- Categories Grid -->
-{% if page_obj %}
-    <div class="row">
-        {% for category in page_obj %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="me-3">
-                                <i class="{{ category.get_icon_class }} fa-2x" style="color: {{ category.color }};"></i>
+    <!-- Categories Grid -->
+    {% if page_obj %}
+        <div class="row">
+            {% for category in page_obj %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="{{ category.get_icon_class }} fa-2x"
+                                       style="color: {{ category.color }}"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-1">{{ category.name }}</h5>
+                                </div>
                             </div>
-                            <div>
-                                <h5 class="card-title mb-1">{{ category.name }}</h5>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-auto">
-                            <div class="btn-group btn-group-sm w-100">
-                                <a href="{% url 'categories:category_detail' category.pk %}" class="btn btn-outline-primary">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                                <a href="{% url 'categories:category_update' category.pk %}" class="btn btn-outline-warning">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <a href="{% url 'categories:category_delete' category.pk %}" class="btn btn-outline-danger">
-                                    <i class="fas fa-trash"></i> Delete
-                                </a>
+                            <div class="mt-auto">
+                                <div class="btn-group btn-group-sm w-100">
+                                    <a href="{% url 'categories:category_detail' category.pk %}"
+                                       class="btn btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <a href="{% url 'categories:category_update' category.pk %}"
+                                       class="btn btn-outline-warning">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <a href="{% url 'categories:category_delete' category.pk %}"
+                                       class="btn btn-outline-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        {% endfor %}
-    </div>
-    
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-        <nav aria-label="Category pagination">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                    </li>
-                {% endif %}
-                
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                        <li class="page-item active">
-                            <span class="page-link">{{ num }}</span>
-                        </li>
-                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            {% endfor %}
+        </div>
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Category pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
                         </li>
                     {% endif %}
-                {% endfor %}
-                
-                {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No categories found</h5>
+            <p class="text-muted">Start organizing your finances by creating your first category.</p>
+            <a href="{% url 'categories:category_create' %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Add First Category
+            </a>
+        </div>
     {% endif %}
-{% else %}
-    <div class="text-center py-5">
-        <i class="fas fa-tags fa-3x text-muted mb-3"></i>
-        <h5 class="text-muted">No categories found</h5>
-        <p class="text-muted">Start organizing your finances by creating your first category.</p>
-        <a href="{% url 'categories:category_create' %}" class="btn btn-success">
-            <i class="fas fa-plus me-2"></i>Add First Category
-        </a>
-    </div>
-{% endif %}
 {% endblock %}

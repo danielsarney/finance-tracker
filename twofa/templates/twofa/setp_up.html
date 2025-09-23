@@ -1,57 +1,53 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Setup Two-Factor Authentication{% endblock %}
-
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-shield-alt me-2"></i>
-                        Setup Two-Factor Authentication
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="row justify-content-center">
-                        <div class="col-md-6 text-center">
-                            <div class="qr-code-container">
-                                <img src="{{ qr_code }}" alt="QR Code" class="img-fluid border rounded">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            Setup Two-Factor Authentication
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row justify-content-center">
+                            <div class="col-md-6 text-center">
+                                <div class="qr-code-container">
+                                    <img src="{{ qr_code }}" alt="QR Code" class="img-fluid border rounded">
+                                </div>
                             </div>
                         </div>
+                        <hr>
+                        <form method="post" class="mt-4">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="{{ form.token.id_for_label }}" class="form-label">
+                                    <i class="fas fa-key me-2"></i>
+                                    Verification Code
+                                </label>
+                                {{ form.token }}
+                                {% if form.token.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.token.errors %}
+                                            <small>{{ error }}</small>
+                                            <br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-check me-2"></i>
+                                    Enable Two-Factor Authentication
+                                </button>
+                            </div>
+                        </form>
                     </div>
-
-                    <hr>
-
-                    <form method="post" class="mt-4">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ form.token.id_for_label }}" class="form-label">
-                                <i class="fas fa-key me-2"></i>
-                                Verification Code
-                            </label>
-                            {{ form.token }}
-                            {% if form.token.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.token.errors %}
-                                        <small>{{ error }}</small><br>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-check me-2"></i>
-                                Enable Two-Factor Authentication
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

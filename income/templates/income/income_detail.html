@@ -1,80 +1,82 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ income.description }} - Finance Tracker{% endblock %}
-
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-pound-sign me-2"></i>Income Details
-        </h1>
-        <p class="text-muted">View income information</p>
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-pound-sign me-2"></i>Income Details
+            </h1>
+            <p class="text-muted">View income information</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'income:income_list' %}"
+               class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+            <a href="{% url 'income:income_update' income.pk %}"
+               class="btn btn-warning me-2">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <a href="{% url 'income:income_delete' income.pk %}"
+               class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Delete
+            </a>
+        </div>
     </div>
-    <div class="col-md-4 text-end">
-        <a href="{% url 'income:income_list' %}" class="btn btn-outline-secondary me-2">
-            <i class="fas fa-arrow-left me-2"></i>Back to List
-        </a>
-        <a href="{% url 'income:income_update' income.pk %}" class="btn btn-warning me-2">
-            <i class="fas fa-edit me-2"></i>Edit
-        </a>
-        <a href="{% url 'income:income_delete' income.pk %}" class="btn btn-danger">
-            <i class="fas fa-trash me-2"></i>Delete
-        </a>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <!-- Income Details Card -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Income Information</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <dl class="row">
-                            <dt class="col-sm-4">Description:</dt>
-                            <dd class="col-sm-8">{{ income.description }}</dd>
-                            
-                            <dt class="col-sm-4">Amount:</dt>
-                            <dd class="col-sm-8">
-                                <span class="text-success fw-bold fs-5">£{{ income.amount|floatformat:2 }}</span>
-                            </dd>
-                            
-
-                        </dl>
-                    </div>
-                    <div class="col-md-6">
-                        <dl class="row">
-                            <dt class="col-sm-4">Date:</dt>
-                            <dd class="col-sm-8">{{ income.date|date:"F j, Y" }}</dd>
-                            
-                            <dt class="col-sm-4">Payer:</dt>
-                            <dd class="col-sm-8">{{ income.payer|default:"Not specified" }}</dd>
-                            
-                            <dt class="col-sm-4">Taxable:</dt>
-                            <dd class="col-sm-8">
-                                {% if income.is_taxable %}
-                                    <span class="badge bg-success">Yes</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">No</span>
-                                {% endif %}
-                            </dd>
-                        </dl>
-                    </div>
+    <div class="row">
+        <div class="col-12">
+            <!-- Income Details Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Income Information</h5>
                 </div>
-                
-                {% if income.notes %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <dt>Notes:</dt>
-                        <dd>{{ income.notes|linebreaks }}</dd>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Description:</dt>
+                                <dd class="col-sm-8">
+                                    {{ income.description }}
+                                </dd>
+                                <dt class="col-sm-4">Amount:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="text-success fw-bold fs-5">£{{ income.amount|floatformat:2 }}</span>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Date:</dt>
+                                <dd class="col-sm-8">
+                                    {{ income.date|date:"F j, Y" }}
+                                </dd>
+                                <dt class="col-sm-4">Payer:</dt>
+                                <dd class="col-sm-8">
+                                    {{ income.payer|default:"Not specified" }}
+                                </dd>
+                                <dt class="col-sm-4">Taxable:</dt>
+                                <dd class="col-sm-8">
+                                    {% if income.is_taxable %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                        </div>
                     </div>
+                    {% if income.notes %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <dt>Notes:</dt>
+                                <dd>
+                                    {{ income.notes|linebreaks }}
+                                </dd>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
