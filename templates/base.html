@@ -22,76 +22,76 @@
             </a>
             
             {% if user.is_authenticated %}
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'expenses:expense_list' %}">
-                                <i class="fas fa-credit-card me-1"></i>Expenses
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                                                    <a class="nav-link" href="{% url 'income:income_list' %}">
-                            <i class="fas fa-pound-sign me-1"></i>Income
-                        </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'subscriptions:subscription_list' %}">
-                                <i class="fas fa-sync me-1"></i>Subscriptions
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'work:worklog_list' %}">
-                                <i class="fas fa-briefcase me-1"></i>Work Logs
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'invoices:invoice_list' %}">
-                                <i class="fas fa-file-invoice me-1"></i>Invoices
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'mileage:mileage_list' %}">
-                                <i class="fas fa-car me-1"></i>Mileage
-                            </a>
-                        </li>
-                    </ul>
+                {% if not request.resolver_match.url_name == 'verify' and not request.resolver_match.url_name == 'setup' %}
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
                     
-                    <ul class="navbar-nav">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>{{ user.first_name|default:user.email }}
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'expenses:expense_list' %}">
+                                    <i class="fas fa-credit-card me-1"></i>Expenses
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                                        <a class="nav-link" href="{% url 'income:income_list' %}">
+                                <i class="fas fa-pound-sign me-1"></i>Income
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'categories:category_list' %}">
-                                    <i class="fas fa-tags me-2"></i>Categories
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'clients:client_list' %}">
-                                    <i class="fas fa-users me-2"></i>Clients
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'user_profile:profile_view' %}">
-                                    <i class="fas fa-user-cog me-2"></i>My Profile
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-            {% else %}
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-link" href="{% url 'accounts:login' %}">
-                        <i class="fas fa-sign-in-alt me-1"></i>Login
-                    </a>
-                    <a class="nav-link" href="{% url 'accounts:register' %}">
-                        <i class="fas fa-user-plus me-1"></i>Register
-                    </a>
-                </div>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'subscriptions:subscription_list' %}">
+                                    <i class="fas fa-sync me-1"></i>Subscriptions
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'work:worklog_list' %}">
+                                    <i class="fas fa-briefcase me-1"></i>Work Logs
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'invoices:invoice_list' %}">
+                                    <i class="fas fa-file-invoice me-1"></i>Invoices
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'mileage:mileage_list' %}">
+                                    <i class="fas fa-car me-1"></i>Mileage
+                                </a>
+                            </li>
+                        </ul>
+                        
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user me-1"></i>{{ user.first_name|default:user.email }}
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'categories:category_list' %}">
+                                        <i class="fas fa-tags me-2"></i>Categories
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'clients:client_list' %}">
+                                        <i class="fas fa-users me-2"></i>Clients
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'user_profile:profile_view' %}">
+                                        <i class="fas fa-user-cog me-2"></i>My Profile
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <!-- Show only logout option on 2FA setup/verification pages -->
+                    <div class="navbar-nav ms-auto">
+                        <a class="nav-link" href="{% url 'accounts:logout' %}">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
     </nav>

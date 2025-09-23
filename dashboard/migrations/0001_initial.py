@@ -15,25 +15,55 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='FinancialSummary',
+            name="FinancialSummary",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('month', models.IntegerField()),
-                ('year', models.IntegerField()),
-                ('total_income', models.DecimalField(decimal_places=2, default=0.0, max_digits=12)),
-                ('total_expenses', models.DecimalField(decimal_places=2, default=0.0, max_digits=12)),
-                ('net_income', models.DecimalField(decimal_places=2, default=0.0, max_digits=12)),
-                ('total_subscriptions', models.DecimalField(decimal_places=2, default=0.0, max_digits=10)),
-                ('total_work_income', models.DecimalField(decimal_places=2, default=0.0, max_digits=12)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='financial_summaries', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("month", models.IntegerField()),
+                ("year", models.IntegerField()),
+                (
+                    "total_income",
+                    models.DecimalField(decimal_places=2, default=0.0, max_digits=12),
+                ),
+                (
+                    "total_expenses",
+                    models.DecimalField(decimal_places=2, default=0.0, max_digits=12),
+                ),
+                (
+                    "net_income",
+                    models.DecimalField(decimal_places=2, default=0.0, max_digits=12),
+                ),
+                (
+                    "total_subscriptions",
+                    models.DecimalField(decimal_places=2, default=0.0, max_digits=10),
+                ),
+                (
+                    "total_work_income",
+                    models.DecimalField(decimal_places=2, default=0.0, max_digits=12),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="financial_summaries",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Financial Summary',
-                'verbose_name_plural': 'Financial Summaries',
-                'ordering': ['-year', '-month'],
-                'unique_together': {('user', 'month', 'year')},
+                "verbose_name": "Financial Summary",
+                "verbose_name_plural": "Financial Summaries",
+                "ordering": ["-year", "-month"],
+                "unique_together": {("user", "month", "year")},
             },
         ),
     ]

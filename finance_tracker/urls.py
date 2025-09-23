@@ -14,18 +14,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.urls import path, include
 
 urlpatterns = [
-    path('', include('dashboard.urls')),
-    path('accounts/', include('accounts.urls')),
-    path('categories/', include('categories.urls')),
-    path('expenses/', include('expenses.urls')),
-    path('income/', include('income.urls')),
-    path('subscriptions/', include('subscriptions.urls')),
-    path('work/', include('work.urls')),
-    path('profile/', include('user_profile.urls')),
-    path('clients/', include('clients.urls')),
-    path('invoices/', include('invoices.urls')),
-    path('mileage/', include('mileage.urls')),
+    path("", include("dashboard.urls")),
+    path("accounts/", include("accounts.urls")),
+    path("twofa/", include("twofa.urls")),
+    path("categories/", include("categories.urls")),
+    path("expenses/", include("expenses.urls")),
+    path("income/", include("income.urls")),
+    path("subscriptions/", include("subscriptions.urls")),
+    path("work/", include("work.urls")),
+    path("profile/", include("user_profile.urls")),
+    path("clients/", include("clients.urls")),
+    path("invoices/", include("invoices.urls")),
+    path("mileage/", include("mileage.urls")),
 ]

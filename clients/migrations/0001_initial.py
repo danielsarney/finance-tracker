@@ -15,26 +15,80 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Client',
+            name="Client",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('company_name', models.CharField(help_text='Company or client name', max_length=200)),
-                ('contact_person', models.CharField(help_text='Primary contact person', max_length=100)),
-                ('email', models.EmailField(help_text='Primary contact email', max_length=254)),
-                ('phone', models.CharField(blank=True, help_text='Contact phone number', max_length=20)),
-                ('address_line_1', models.CharField(help_text='Company address line 1', max_length=200)),
-                ('address_line_2', models.CharField(blank=True, help_text='Company address line 2 (optional)', max_length=200)),
-                ('town', models.CharField(help_text='Town or city', max_length=100)),
-                ('post_code', models.CharField(help_text='Postal code', max_length=20)),
-                ('hourly_rate', models.DecimalField(decimal_places=2, help_text='Default hourly rate for this client', max_digits=8)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='clients', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "company_name",
+                    models.CharField(
+                        help_text="Company or client name", max_length=200
+                    ),
+                ),
+                (
+                    "contact_person",
+                    models.CharField(
+                        help_text="Primary contact person", max_length=100
+                    ),
+                ),
+                (
+                    "email",
+                    models.EmailField(
+                        help_text="Primary contact email", max_length=254
+                    ),
+                ),
+                (
+                    "phone",
+                    models.CharField(
+                        blank=True, help_text="Contact phone number", max_length=20
+                    ),
+                ),
+                (
+                    "address_line_1",
+                    models.CharField(
+                        help_text="Company address line 1", max_length=200
+                    ),
+                ),
+                (
+                    "address_line_2",
+                    models.CharField(
+                        blank=True,
+                        help_text="Company address line 2 (optional)",
+                        max_length=200,
+                    ),
+                ),
+                ("town", models.CharField(help_text="Town or city", max_length=100)),
+                ("post_code", models.CharField(help_text="Postal code", max_length=20)),
+                (
+                    "hourly_rate",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Default hourly rate for this client",
+                        max_digits=8,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="clients",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Client',
-                'verbose_name_plural': 'Clients',
-                'ordering': ['company_name'],
+                "verbose_name": "Client",
+                "verbose_name_plural": "Clients",
+                "ordering": ["company_name"],
             },
         ),
     ]

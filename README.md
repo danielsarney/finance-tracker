@@ -1,10 +1,9 @@
 # Finance Tracker
-
 Finance Tracker is a full-featured personal finance management application built with Django. It provides an intuitive interface for users to monitor their financial health by tracking various aspects of their financial life including daily expenses, income sources, subscription costs, and work time logging. The app features a clean dashboard with visual summaries and comprehensive reporting capabilities.
 
 ## Features
-
-- **User Authentication**: Secure login/registration system with user-specific data isolation
+- **User Authentication**: Secure login/registration system with mandatory two-factor authentication (2FA)
+- **Two-Factor Authentication**: TOTP-based 2FA using authenticator apps (Google Authenticator, Authy, etc.) with backup codes
 - **Expense Management**: Track daily expenses with categories, dates, and amounts
 - **Income Tracking**: Record and monitor various income sources
 - **Subscription Monitoring**: Keep track of recurring subscription costs and renewal dates
@@ -16,11 +15,11 @@ Finance Tracker is a full-featured personal finance management application built
 - **Search & Filtering**: Advanced search and filtering capabilities for transactions
 
 ## Tech Stack
-
 - **Backend**: Django 4.2.23 (Python web framework)
 - **Database**: PostgreSQL with psycopg2 adapter
 - **Frontend**: HTML5, CSS3, JavaScript
-- **Authentication**: Django's built-in authentication system
+- **Authentication**: Django's built-in authentication system with mandatory 2FA
+- **2FA Implementation**: pyotp for TOTP generation, qrcode for QR code generation
 - **Styling**: Custom CSS with responsive design
 - **Environment Management**: python-dotenv for configuration
 - **Testing**: Factory Boy and Faker for test data generation
@@ -29,13 +28,12 @@ Finance Tracker is a full-featured personal finance management application built
 ## Getting Started
 
 ### Prerequisites
-
 - Python 3.8 or higher
 - PostgreSQL database
 - pip (Python package installer)
+- Authenticator app (Google Authenticator, Authy, Microsoft Authenticator, or similar)
 
 ### Installation
-
 1. **Clone the repository**
    ```bash
    git clone https://github.com/danielsarney/finance-tracker.git
@@ -77,11 +75,6 @@ Finance Tracker is a full-featured personal finance management application built
    Open your browser and navigate to `http://127.0.0.1:8000/`
 
 9. **Run Tests**
-   ```
-   python3 manage.py test
-   ```
-
-10. **Generate Demo Data**
-   ```
-   python3 manage.py seed
-   ```
+    ```
+    python3 manage.py test
+    ```

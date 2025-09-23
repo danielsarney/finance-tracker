@@ -7,23 +7,44 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('icon', models.CharField(blank=True, help_text="FontAwesome icon name (e.g., 'fa-utensils')", max_length=50)),
-                ('color', models.CharField(default='#6c757d', help_text='Hex color code (e.g., #6c757d)', max_length=7)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, unique=True)),
+                (
+                    "icon",
+                    models.CharField(
+                        blank=True,
+                        help_text="FontAwesome icon name (e.g., 'fa-utensils')",
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "color",
+                    models.CharField(
+                        default="#6c757d",
+                        help_text="Hex color code (e.g., #6c757d)",
+                        max_length=7,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name_plural': 'Categories',
-                'ordering': ['name'],
+                "verbose_name_plural": "Categories",
+                "ordering": ["name"],
             },
         ),
     ]

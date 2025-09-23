@@ -102,11 +102,9 @@ class MileageLogCreateView(LoginRequiredMixin, CreateView):
         return context
     
     def form_valid(self, form):
-        """Set user and show success message."""
+        """Set user."""
         form.instance.user = self.request.user
-        response = super().form_valid(form)
-        messages.success(self.request, f'Mileage log created successfully! Claim: £{form.instance.total_claim:.2f}')
-        return response
+        return super().form_valid(form)
 
 
 class MileageLogUpdateView(LoginRequiredMixin, UpdateView):
@@ -161,10 +159,8 @@ class MileageLogDeleteView(LoginRequiredMixin, DeleteView):
         return MileageLog.objects.filter(user=self.request.user)
     
     def delete(self, request, *args, **kwargs):
-        """Show success message after deletion."""
-        response = super().delete(request, *args, **kwargs)
-        messages.success(request, 'Mileage log deleted successfully.')
-        return response
+        """Delete mileage log."""
+        return super().delete(request, *args, **kwargs)
 
 
 @login_required

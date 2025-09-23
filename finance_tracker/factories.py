@@ -8,170 +8,226 @@ import random
 
 class UserFactory(DjangoModelFactory):
     """Factory for creating User instances."""
+
     class Meta:
         model = User
-    
-    username = factory.Sequence(lambda n: f'user{n}')
-    email = factory.LazyAttribute(lambda obj: f'{obj.username}@example.com')
-    password = factory.PostGenerationMethodCall('set_password', 'testpass123')
-    first_name = factory.Faker('first_name')
-    last_name = factory.Faker('last_name')
+
+    username = factory.Sequence(lambda n: f"user{n}")
+    email = factory.LazyAttribute(lambda obj: f"{obj.username}@example.com")
+    password = factory.PostGenerationMethodCall("set_password", "testpass123")
+    first_name = factory.Faker("first_name")
+    last_name = factory.Faker("last_name")
 
 
 class CategoryFactory(DjangoModelFactory):
     """Factory for creating Category instances."""
+
     class Meta:
-        model = 'categories.Category'
-    
-    name = factory.Sequence(lambda n: f'category_{n}')
-    color = factory.Faker('hex_color')
-    icon = factory.Iterator([
-        'fas fa-shopping-cart',
-        'fas fa-money-bill-wave',
-        'fas fa-credit-card',
-        'fas fa-briefcase',
-        'fas fa-home',
-        'fas fa-utensils',
-        'fas fa-car',
-        'fas fa-graduation-cap'
-    ])
+        model = "categories.Category"
+
+    name = factory.Sequence(lambda n: f"category_{n}")
+    color = factory.Faker("hex_color")
+    icon = factory.Iterator(
+        [
+            "fas fa-shopping-cart",
+            "fas fa-money-bill-wave",
+            "fas fa-credit-card",
+            "fas fa-briefcase",
+            "fas fa-home",
+            "fas fa-utensils",
+            "fas fa-car",
+            "fas fa-graduation-cap",
+        ]
+    )
 
 
 class ExpenseFactory(DjangoModelFactory):
     """Factory for creating Expense instances."""
+
     class Meta:
-        model = 'expenses.Expense'
-    
+        model = "expenses.Expense"
+
     user = factory.SubFactory(UserFactory)
-    description = factory.Faker('sentence', nb_words=3)
-    amount = factory.Faker('pydecimal', left_digits=3, right_digits=2, positive=True)
-    date = factory.Faker('date_between', start_date='-1y', end_date='today')
+    description = factory.Faker("sentence", nb_words=3)
+    amount = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
+    date = factory.Faker("date_between", start_date="-1y", end_date="today")
     category = factory.SubFactory(CategoryFactory)
-    payee = factory.Faker('company')
-    is_tax_deductible = factory.Faker('boolean')
+    payee = factory.Faker("company")
+    is_tax_deductible = factory.Faker("boolean")
 
 
 class IncomeFactory(DjangoModelFactory):
     """Factory for creating Income instances."""
+
     class Meta:
-        model = 'income.Income'
-    
+        model = "income.Income"
+
     user = factory.SubFactory(UserFactory)
-    description = factory.Faker('sentence', nb_words=3)
-    amount = factory.Faker('pydecimal', left_digits=4, right_digits=2, positive=True)
-    date = factory.Faker('date_between', start_date='-1y', end_date='today')
+    description = factory.Faker("sentence", nb_words=3)
+    amount = factory.Faker("pydecimal", left_digits=4, right_digits=2, positive=True)
+    date = factory.Faker("date_between", start_date="-1y", end_date="today")
     category = factory.SubFactory(CategoryFactory)
-    payer = factory.Faker('company')
+    payer = factory.Faker("company")
     is_taxable = factory.Iterator([True, False])
 
 
 class SubscriptionFactory(DjangoModelFactory):
     """Factory for creating Subscription instances."""
+
     class Meta:
-        model = 'subscriptions.Subscription'
-    
+        model = "subscriptions.Subscription"
+
     user = factory.SubFactory(UserFactory)
-    name = factory.Faker('company')
-    amount = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
-    date = factory.Faker('date_between', start_date='-6m', end_date='today')
-    billing_cycle = factory.Iterator(['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'])
+    name = factory.Faker("company")
+    amount = factory.Faker("pydecimal", left_digits=2, right_digits=2, positive=True)
+    date = factory.Faker("date_between", start_date="-6m", end_date="today")
+    billing_cycle = factory.Iterator(
+        ["DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"]
+    )
     next_billing_date = factory.LazyAttribute(lambda obj: obj.date)
     category = factory.SubFactory(CategoryFactory)
 
 
 class WorkLogFactory(DjangoModelFactory):
     """Factory for creating WorkLog instances."""
+
     class Meta:
-        model = 'work.WorkLog'
-    
+        model = "work.WorkLog"
+
     user = factory.SubFactory(UserFactory)
-    company_client = factory.SubFactory('finance_tracker.factories.ClientFactory', user=factory.SelfAttribute('..user'))
-    hours_worked = factory.Iterator([Decimal('4.0'), Decimal('8.0'), Decimal('6.5'), Decimal('10.0')])
-    hourly_rate = factory.Iterator([Decimal('25.00'), Decimal('30.00'), Decimal('35.00'), Decimal('40.00')])
-    work_date = factory.Faker('date_between', start_date='-1y', end_date='today')
-    status = factory.Iterator(['PENDING', 'INVOICED', 'PAID'])
+    company_client = factory.SubFactory(
+        "finance_tracker.factories.ClientFactory", user=factory.SelfAttribute("..user")
+    )
+    hours_worked = factory.Iterator(
+        [Decimal("4.0"), Decimal("8.0"), Decimal("6.5"), Decimal("10.0")]
+    )
+    hourly_rate = factory.Iterator(
+        [Decimal("25.00"), Decimal("30.00"), Decimal("35.00"), Decimal("40.00")]
+    )
+    work_date = factory.Faker("date_between", start_date="-1y", end_date="today")
+    status = factory.Iterator(["PENDING", "INVOICED", "PAID"])
 
 
 class ClientFactory(DjangoModelFactory):
     """Factory for creating Client instances."""
+
     class Meta:
-        model = 'clients.Client'
-    
+        model = "clients.Client"
+
     user = factory.SubFactory(UserFactory)
-    company_name = factory.Faker('company')
-    contact_person = factory.Faker('name')
-    email = factory.LazyAttribute(lambda obj: f'{obj.contact_person.lower().replace(" ", ".")}@{obj.company_name.lower().replace(" ", "").replace(",", "").replace(".", "")}.com')
-    phone = factory.LazyFunction(lambda: f"+44 {random.randint(100, 999)} {random.randint(100000, 999999)}")
-    address_line_1 = factory.Faker('street_address')
-    address_line_2 = factory.Faker('secondary_address')
-    town = factory.Faker('city')
-    post_code = factory.LazyFunction(lambda: f"{random.choice(['SW1A', 'W1A', 'M1', 'B1', 'L1', 'G1', 'EH1', 'CF10', 'BS1', 'LS1'])} {random.randint(1, 9)}{random.choice(['AA', 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR'])}")
-    hourly_rate = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True, min_value=25, max_value=100)
+    company_name = factory.Faker("company")
+    contact_person = factory.Faker("name")
+    email = factory.LazyAttribute(
+        lambda obj: f'{obj.contact_person.lower().replace(" ", ".")}@{obj.company_name.lower().replace(" ", "").replace(",", "").replace(".", "")}.com'
+    )
+    phone = factory.LazyFunction(
+        lambda: f"+44 {random.randint(100, 999)} {random.randint(100000, 999999)}"
+    )
+    address_line_1 = factory.Faker("street_address")
+    address_line_2 = factory.Faker("secondary_address")
+    town = factory.Faker("city")
+    post_code = factory.LazyFunction(
+        lambda: f"{random.choice(['SW1A', 'W1A', 'M1', 'B1', 'L1', 'G1', 'EH1', 'CF10', 'BS1', 'LS1'])} {random.randint(1, 9)}{random.choice(['AA', 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR'])}"
+    )
+    hourly_rate = factory.Faker(
+        "pydecimal",
+        left_digits=2,
+        right_digits=2,
+        positive=True,
+        min_value=25,
+        max_value=100,
+    )
 
 
 class UserProfileFactory(DjangoModelFactory):
     """Factory for creating UserProfile instances."""
+
     class Meta:
-        model = 'user_profile.UserProfile'
-    
+        model = "user_profile.UserProfile"
+
     user = factory.SubFactory(UserFactory)
-    address_line_1 = factory.Faker('street_address')
-    address_line_2 = factory.Faker('secondary_address')
-    town = factory.Faker('city')
-    post_code = factory.LazyFunction(lambda: f"{random.choice(['SW1A', 'W1A', 'M1', 'B1', 'L1', 'G1', 'EH1', 'CF10', 'BS1', 'LS1'])} {random.randint(1, 9)}{random.choice(['AA', 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR'])}")
-    phone = factory.LazyFunction(lambda: f"+44 {random.randint(100, 999)} {random.randint(100000, 999999)}")
-    email = factory.LazyAttribute(lambda obj: f'{obj.user.username}@example.com')
-    bank_name = factory.Faker('company')
-    account_name = factory.Faker('name')
-    account_number = factory.LazyFunction(lambda: f"{random.randint(10000000, 99999999)}")
-    sort_code = factory.LazyFunction(lambda: f"{random.randint(10, 99)}-{random.randint(10, 99)}-{random.randint(10, 99)}")
+    address_line_1 = factory.Faker("street_address")
+    address_line_2 = factory.Faker("secondary_address")
+    town = factory.Faker("city")
+    post_code = factory.LazyFunction(
+        lambda: f"{random.choice(['SW1A', 'W1A', 'M1', 'B1', 'L1', 'G1', 'EH1', 'CF10', 'BS1', 'LS1'])} {random.randint(1, 9)}{random.choice(['AA', 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR'])}"
+    )
+    phone = factory.LazyFunction(
+        lambda: f"+44 {random.randint(100, 999)} {random.randint(100000, 999999)}"
+    )
+    email = factory.LazyAttribute(lambda obj: f"{obj.user.username}@example.com")
+    bank_name = factory.Faker("company")
+    account_name = factory.Faker("name")
+    account_number = factory.LazyFunction(
+        lambda: f"{random.randint(10000000, 99999999)}"
+    )
+    sort_code = factory.LazyFunction(
+        lambda: f"{random.randint(10, 99)}-{random.randint(10, 99)}-{random.randint(10, 99)}"
+    )
 
 
 class MileageLogFactory(DjangoModelFactory):
     """Factory for creating MileageLog instances."""
+
     class Meta:
-        model = 'mileage.MileageLog'
-    
+        model = "mileage.MileageLog"
+
     user = factory.SubFactory(UserFactory)
-    date = factory.Faker('date_between', start_date='-1y', end_date='today')
-    start_location = factory.Faker('city')
-    end_location = factory.Faker('city')
-    purpose = factory.Faker('sentence', nb_words=4)
-    miles = factory.Faker('pydecimal', left_digits=2, right_digits=1, positive=True, min_value=1, max_value=100)
-    client = factory.SubFactory(ClientFactory, user=factory.SelfAttribute('..user'))
-    start_address = factory.Faker('address')
-    end_address = factory.Faker('address')
+    date = factory.Faker("date_between", start_date="-1y", end_date="today")
+    start_location = factory.Faker("city")
+    end_location = factory.Faker("city")
+    purpose = factory.Faker("sentence", nb_words=4)
+    miles = factory.Faker(
+        "pydecimal",
+        left_digits=2,
+        right_digits=1,
+        positive=True,
+        min_value=1,
+        max_value=100,
+    )
+    client = factory.SubFactory(ClientFactory, user=factory.SelfAttribute("..user"))
+    start_address = factory.Faker("address")
+    end_address = factory.Faker("address")
+
 
 # Specialized factories for testing scenarios
 class ExpenseWithSpecificDateFactory(ExpenseFactory):
     """Factory for creating expenses with a specific date."""
-    date = factory.LazyFunction(lambda: date.today() - timedelta(days=random.randint(1, 30)))
+
+    date = factory.LazyFunction(
+        lambda: date.today() - timedelta(days=random.randint(1, 30))
+    )
 
 
 class IncomeWithSpecificDateFactory(IncomeFactory):
     """Factory for creating income with a specific date."""
-    date = factory.LazyFunction(lambda: date.today() - timedelta(days=random.randint(1, 30)))
+
+    date = factory.LazyFunction(
+        lambda: date.today() - timedelta(days=random.randint(1, 30))
+    )
 
 
 class SubscriptionWithSpecificBillingCycleFactory(SubscriptionFactory):
     """Factory for creating subscriptions with specific billing cycles."""
-    billing_cycle = factory.Iterator(['MONTHLY', 'YEARLY'])
+
+    billing_cycle = factory.Iterator(["MONTHLY", "YEARLY"])
 
 
 class WorkLogWithSpecificHoursFactory(WorkLogFactory):
     """Factory for creating work logs with specific hours."""
-    hours_worked = factory.Iterator([Decimal('4.0'), Decimal('8.0'), Decimal('6.5')])
+
+    hours_worked = factory.Iterator([Decimal("4.0"), Decimal("8.0"), Decimal("6.5")])
 
 
 # Batch factories for creating multiple instances
 class BatchExpenseFactory:
     """Factory for creating multiple expenses for a user."""
-    
+
     @staticmethod
     def create_batch_for_user(user, count=10, **kwargs):
         """Create multiple expenses for a specific user."""
         return ExpenseFactory.create_batch(count, user=user, **kwargs)
-    
+
     @staticmethod
     def create_batch_for_month(user, year, month, count=5, **kwargs):
         """Create multiple expenses for a specific month."""
@@ -185,12 +241,12 @@ class BatchExpenseFactory:
 
 class BatchIncomeFactory:
     """Factory for creating multiple income entries for a user."""
-    
+
     @staticmethod
     def create_batch_for_user(user, count=10, **kwargs):
         """Create multiple income entries for a specific user."""
         return IncomeFactory.create_batch(count, user=user, **kwargs)
-    
+
     @staticmethod
     def create_batch_for_month(user, year, month, count=3, **kwargs):
         """Create multiple income entries for a specific month."""
@@ -204,7 +260,7 @@ class BatchIncomeFactory:
 
 class BatchSubscriptionFactory:
     """Factory for creating multiple subscriptions for a user."""
-    
+
     @staticmethod
     def create_batch_for_user(user, count=5, **kwargs):
         """Create multiple subscriptions for a specific user."""
@@ -213,12 +269,12 @@ class BatchSubscriptionFactory:
 
 class BatchWorkLogFactory:
     """Factory for creating multiple work logs for a user."""
-    
+
     @staticmethod
     def create_batch_for_user(user, count=20, **kwargs):
         """Create multiple work logs for a specific user."""
         return WorkLogFactory.create_batch(count, user=user, **kwargs)
-    
+
     @staticmethod
     def create_batch_for_month(user, year, month, count=10, **kwargs):
         """Create multiple work logs for a specific month."""
@@ -232,7 +288,7 @@ class BatchWorkLogFactory:
 
 class BatchClientFactory:
     """Factory for creating multiple clients for a user."""
-    
+
     @staticmethod
     def create_batch_for_user(user, count=5, **kwargs):
         """Create multiple clients for a specific user."""
@@ -241,12 +297,12 @@ class BatchClientFactory:
 
 class BatchMileageLogFactory:
     """Factory for creating multiple mileage logs for a user."""
-    
+
     @staticmethod
     def create_batch_for_user(user, count=10, **kwargs):
         """Create multiple mileage logs for a specific user."""
         return MileageLogFactory.create_batch(count, user=user, **kwargs)
-    
+
     @staticmethod
     def create_batch_for_month(user, year, month, count=5, **kwargs):
         """Create multiple mileage logs for a specific month."""
@@ -254,5 +310,7 @@ class BatchMileageLogFactory:
         for _ in range(count):
             day = random.randint(1, 28)
             mileage_date = date(year, month, day)
-            mileage_logs.append(MileageLogFactory(user=user, date=mileage_date, **kwargs))
+            mileage_logs.append(
+                MileageLogFactory(user=user, date=mileage_date, **kwargs)
+            )
         return mileage_logs

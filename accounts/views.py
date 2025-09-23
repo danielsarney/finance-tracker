@@ -4,38 +4,60 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 
+
 def register(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('dashboard:dashboard')
+            # Redirect to 2FA setup since it's mandatory
+            return redirect("twofa:setup")
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Handle form errors as flash messages
+            if form.non_field_errors():
+                for error in form.non_field_errors():
+                    messages.error(request, error, extra_tags="danger")
+            else:
+                messages.error(
+                    request, "Please correct the errors below.", extra_tags="danger"
+                )
     else:
         form = CustomUserCreationForm()
-    
-    return render(request, 'accounts/register.html', {'form': form})
+
+    return render(request, "accounts/register.html", {"form": form})
+
 
 def user_login(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CustomAuthenticationForm(request.POST)
         if form.is_valid():
             user = form.user
             login(request, user)
-            messages.success(request, f'Welcome back, {user.first_name or user.email}!')
-            return redirect('dashboard:dashboard')
+
+            # Check if user has 2FA enabled
+            if hasattr(user, "twofa") and user.twofa.is_enabled:
+                # Redirect to 2FA verification
+                return redirect("twofa:verify")
+            else:
+                # Redirect to 2FA setup
+                return redirect("twofa:setup")
         else:
-            messages.error(request, 'Invalid email or password.')
+            # Handle authentication errors as flash messages
+            if form.non_field_errors():
+                for error in form.non_field_errors():
+                    messages.error(request, error, extra_tags="danger")
+            else:
+                messages.error(
+                    request, "Please correct the errors below.", extra_tags="danger"
+                )
     else:
         form = CustomAuthenticationForm()
-    
-    return render(request, 'accounts/login.html', {'form': form})
+
+    return render(request, "accounts/login.html", {"form": form})
+
 
 @login_required
 def user_logout(request):
     logout(request)
-    messages.success(request, 'You have been logged out successfully.')
-    return redirect('accounts:login')
+    return redirect("accounts:login")

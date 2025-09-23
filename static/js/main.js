@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeWorkLogHourlyRate();
     initializeInvoiceForm();
     initializeMileageCalculator();
+    initializeTwoFactorAuth();
 });
 
 // Bootstrap Components Initialization
@@ -471,6 +472,29 @@ function initializeInvoiceForm() {
             submitBtn.disabled = selectedWorkLogs.length === 0;
         }
     });
+}
+
+// Two-Factor Authentication Setup
+function initializeTwoFactorAuth() {
+    // Auto-focus on token input for 2FA setup
+    const tokenInput = document.querySelector('input[name="token"]');
+    const form = document.getElementById('twofa-form');
+    
+    if (tokenInput) {
+        tokenInput.focus();
+        
+        // Auto-submit when token is complete (for verify page)
+        if (form) {
+            tokenInput.addEventListener('input', function() {
+                if (this.value.length === 6 && /^\d{6}$/.test(this.value)) {
+                    // Small delay to let user see the complete code
+                    setTimeout(() => {
+                        form.submit();
+                    }, 500);
+                }
+            });
+        }
+    }
 }
 
 // Mileage Calculator

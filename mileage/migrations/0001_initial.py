@@ -11,30 +11,97 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('clients', '0001_initial'),
+        ("clients", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MileageLog',
+            name="MileageLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField(help_text='Date of the journey')),
-                ('start_location', models.CharField(help_text='Starting location (e.g., Home Office)', max_length=200)),
-                ('end_location', models.CharField(help_text='Destination (e.g., Client Office)', max_length=200)),
-                ('purpose', models.CharField(help_text='Business purpose of the journey', max_length=200)),
-                ('start_address', models.TextField(help_text='Full address of starting location')),
-                ('end_address', models.TextField(help_text='Full address of destination')),
-                ('miles', models.DecimalField(decimal_places=1, help_text='Number of miles driven', max_digits=6)),
-                ('rate_per_mile', models.DecimalField(decimal_places=2, editable=False, help_text='Rate per mile used for calculation', max_digits=4)),
-                ('total_claim', models.DecimalField(decimal_places=2, editable=False, help_text='Total claimable amount', max_digits=8)),
-                ('client', models.ForeignKey(help_text='Client for this business journey', on_delete=django.db.models.deletion.PROTECT, to='clients.client')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mileage_logs', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField(help_text="Date of the journey")),
+                (
+                    "start_location",
+                    models.CharField(
+                        help_text="Starting location (e.g., Home Office)",
+                        max_length=200,
+                    ),
+                ),
+                (
+                    "end_location",
+                    models.CharField(
+                        help_text="Destination (e.g., Client Office)", max_length=200
+                    ),
+                ),
+                (
+                    "purpose",
+                    models.CharField(
+                        help_text="Business purpose of the journey", max_length=200
+                    ),
+                ),
+                (
+                    "start_address",
+                    models.TextField(help_text="Full address of starting location"),
+                ),
+                (
+                    "end_address",
+                    models.TextField(help_text="Full address of destination"),
+                ),
+                (
+                    "miles",
+                    models.DecimalField(
+                        decimal_places=1,
+                        help_text="Number of miles driven",
+                        max_digits=6,
+                    ),
+                ),
+                (
+                    "rate_per_mile",
+                    models.DecimalField(
+                        decimal_places=2,
+                        editable=False,
+                        help_text="Rate per mile used for calculation",
+                        max_digits=4,
+                    ),
+                ),
+                (
+                    "total_claim",
+                    models.DecimalField(
+                        decimal_places=2,
+                        editable=False,
+                        help_text="Total claimable amount",
+                        max_digits=8,
+                    ),
+                ),
+                (
+                    "client",
+                    models.ForeignKey(
+                        help_text="Client for this business journey",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="clients.client",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="mileage_logs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Mileage Log',
-                'verbose_name_plural': 'Mileage Logs',
-                'ordering': ['-date'],
+                "verbose_name": "Mileage Log",
+                "verbose_name_plural": "Mileage Logs",
+                "ordering": ["-date"],
             },
         ),
     ]

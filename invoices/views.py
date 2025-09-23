@@ -129,10 +129,8 @@ def invoice_create(request):
                     work_log.save()
                     
                 except WorkLog.DoesNotExist:
-                    messages.warning(request, f'Work log {work_log_id} not found.')
                     continue
             
-            messages.success(request, f'Invoice {invoice.invoice_number} created with {len(work_log_ids)} work logs!')
             return redirect('invoices:invoice_detail', pk=invoice.pk)
     else:
         form = InvoiceForm(user=request.user)

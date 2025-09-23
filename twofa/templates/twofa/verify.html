@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verify Two-Factor Authentication{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Two-Factor Authentication Required
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="twofa-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.token.id_for_label }}" class="form-label">
+                                <i class="fas fa-key me-2"></i>
+                                Verification Code
+                            </label>
+                            {{ form.token }}
+                            {% if form.token.help_text %}
+                                <div class="form-text">{{ form.token.help_text }}</div>
+                            {% endif %}
+                            {% if form.token.errors %}
+                                <div class="alert alert-danger mt-2 py-2">
+                                    {% for error in form.token.errors %}
+                                        <small class="fw-bold">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check me-2"></i>
+                                Verify & Continue
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

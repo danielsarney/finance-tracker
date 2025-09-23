@@ -15,26 +15,83 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='UserProfile',
+            name="UserProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('address_line_1', models.CharField(help_text='Your business address line 1', max_length=200)),
-                ('address_line_2', models.CharField(blank=True, help_text='Your business address line 2 (optional)', max_length=200)),
-                ('town', models.CharField(help_text='Your town or city', max_length=100)),
-                ('post_code', models.CharField(help_text='Your post code', max_length=20)),
-                ('email', models.EmailField(help_text='Your business email', max_length=254)),
-                ('phone', models.CharField(help_text='Your business phone number', max_length=20)),
-                ('bank_name', models.CharField(help_text='Your bank name', max_length=100)),
-                ('account_number', models.CharField(help_text='Your bank account number', max_length=20)),
-                ('account_name', models.CharField(help_text='Name on the account', max_length=100)),
-                ('sort_code', models.CharField(help_text='Your bank sort code (e.g., 12-34-56)', max_length=10)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "address_line_1",
+                    models.CharField(
+                        help_text="Your business address line 1", max_length=200
+                    ),
+                ),
+                (
+                    "address_line_2",
+                    models.CharField(
+                        blank=True,
+                        help_text="Your business address line 2 (optional)",
+                        max_length=200,
+                    ),
+                ),
+                (
+                    "town",
+                    models.CharField(help_text="Your town or city", max_length=100),
+                ),
+                (
+                    "post_code",
+                    models.CharField(help_text="Your post code", max_length=20),
+                ),
+                (
+                    "email",
+                    models.EmailField(help_text="Your business email", max_length=254),
+                ),
+                (
+                    "phone",
+                    models.CharField(
+                        help_text="Your business phone number", max_length=20
+                    ),
+                ),
+                (
+                    "bank_name",
+                    models.CharField(help_text="Your bank name", max_length=100),
+                ),
+                (
+                    "account_number",
+                    models.CharField(
+                        help_text="Your bank account number", max_length=20
+                    ),
+                ),
+                (
+                    "account_name",
+                    models.CharField(help_text="Name on the account", max_length=100),
+                ),
+                (
+                    "sort_code",
+                    models.CharField(
+                        help_text="Your bank sort code (e.g., 12-34-56)", max_length=10
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'User Profile',
-                'verbose_name_plural': 'User Profiles',
+                "verbose_name": "User Profile",
+                "verbose_name_plural": "User Profiles",
             },
         ),
     ]
