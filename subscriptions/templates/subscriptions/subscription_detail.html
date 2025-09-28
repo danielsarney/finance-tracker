@@ -119,15 +119,67 @@
                             <div class="col-12">
                                 <hr>
                                 <h6><i class="fas fa-paperclip me-2"></i>Attachment</h6>
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-file-alt fa-2x text-muted me-3"></i>
-                                    <div>
-                                        <a href="{{ subscription.attachment.url }}" 
-                                           target="_blank" 
-                                           class="btn btn-outline-primary btn-sm">
-                                            <i class="fas fa-download me-2"></i>View/Download
-                                        </a>
-                                        <small class="text-muted d-block mt-1">
+                                <div class="card">
+                                    <div class="card-body">
+                                        {% if subscription.attachment.url|slice:"-4:" == ".jpg" or subscription.attachment.url|slice:"-5:" == ".jpeg" or subscription.attachment.url|slice:"-4:" == ".png" or subscription.attachment.url|slice:"-4:" == ".gif" %}
+                                            <!-- Image Preview -->
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <img src="{{ subscription.attachment.url }}" 
+                                                         class="img-fluid rounded shadow-sm" 
+                                                         alt="Subscription attachment"
+                                                         style="max-height: 200px; object-fit: cover;">
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <h6 class="mb-2">Image Preview</h6>
+                                                    <p class="text-muted mb-3">Click the buttons below to view full size or download the original file.</p>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{{ subscription.attachment.url }}" 
+                                                           target="_blank" 
+                                                           class="btn btn-outline-primary">
+                                                            <i class="fas fa-external-link-alt me-2"></i>View Full Size
+                                                        </a>
+                                                        <a href="{% url 'download_attachment' 'subscription' subscription.pk %}" 
+                                                           class="btn btn-outline-success">
+                                                            <i class="fas fa-download me-2"></i>Download
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <!-- Non-image file -->
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    {% if subscription.attachment.url|slice:"-4:" == ".pdf" %}
+                                                        <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                                    {% elif subscription.attachment.url|slice:"-4:" == ".doc" or subscription.attachment.url|slice:"-5:" == ".docx" %}
+                                                        <i class="fas fa-file-word fa-3x text-primary"></i>
+                                                    {% elif subscription.attachment.url|slice:"-4:" == ".xls" or subscription.attachment.url|slice:"-5:" == ".xlsx" %}
+                                                        <i class="fas fa-file-excel fa-3x text-success"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-file-alt fa-3x text-muted"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">Document Attachment</h6>
+                                                    <p class="text-muted mb-2">Click the buttons below to view or download the file.</p>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{{ subscription.attachment.url }}" 
+                                                           target="_blank" 
+                                                           class="btn btn-outline-primary">
+                                                            <i class="fas fa-external-link-alt me-2"></i>View File
+                                                        </a>
+                                                        <a href="{% url 'download_attachment' 'subscription' subscription.pk %}" 
+                                                           class="btn btn-outline-success">
+                                                            <i class="fas fa-download me-2"></i>Download
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        <hr class="my-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
                                             Uploaded: {{ subscription.updated_at|date:"M j, Y g:i A" }}
                                         </small>
                                     </div>

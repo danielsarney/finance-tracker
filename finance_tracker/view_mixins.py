@@ -52,7 +52,7 @@ class BaseCRUDMixin(BaseListViewMixin):
     def create_view(self, request):
         """Handle create operation."""
         if request.method == "POST":
-            form = self.form_class(request.POST)
+            form = self.form_class(request.POST, request.FILES)
             if form.is_valid():
                 instance = form.save(commit=False)
                 instance.user = request.user
@@ -71,7 +71,7 @@ class BaseCRUDMixin(BaseListViewMixin):
         """Handle update operation."""
         instance = get_object_or_404(self.model, pk=pk, user=request.user)
         if request.method == "POST":
-            form = self.form_class(request.POST, instance=instance)
+            form = self.form_class(request.POST, request.FILES, instance=instance)
             if form.is_valid():
                 form.save()
                 return redirect(self.list_url_name)

@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeInvoiceForm();
     initializeMileageCalculator();
     initializeTwoFactorAuth();
-    initializeConditionalAttachmentFields();
+    // initializeConditionalAttachmentFields(); // Disabled - attachment fields now always visible
 });
 
 // Bootstrap Components Initialization

@@ -16,6 +16,7 @@ Including another URLconf
 """
 
 from django.urls import path, include
+from .download_views import download_attachment
 
 urlpatterns = [
     path("", include("dashboard.urls")),
@@ -30,4 +31,9 @@ urlpatterns = [
     path("clients/", include("clients.urls")),
     path("invoices/", include("invoices.urls")),
     path("mileage/", include("mileage.urls")),
+    path(
+        "download/<str:model_name>/<int:pk>/",
+        download_attachment,
+        name="download_attachment",
+    ),
 ]
