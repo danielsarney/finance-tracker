@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeInvoiceForm();
     initializeMileageCalculator();
     initializeTwoFactorAuth();
+    initializeConditionalAttachmentFields();
 });
 
 // Bootstrap Components Initialization
@@ -665,3 +666,52 @@ window.FinanceTracker = {
         return parseFloat(number).toFixed(decimals);
     }
 };
+
+// Conditional Attachment Fields
+function initializeConditionalAttachmentFields() {
+    // Look for different types of conditional attachment fields
+    const attachmentField = document.getElementById('attachment-field');
+    
+    if (!attachmentField) {
+        return; // No attachment field found, exit early
+    }
+    
+    // Check for different checkbox types that control attachment visibility
+    const taxDeductibleCheckbox = document.querySelector('input[id*="is_tax_deductible"]');
+    const taxableCheckbox = document.querySelector('input[id*="is_taxable"]');
+    const businessExpenseCheckbox = document.querySelector('input[id*="is_business_expense"]');
+    
+    // Determine which checkbox controls the attachment field
+    let controllingCheckbox = null;
+    
+    if (taxDeductibleCheckbox) {
+        controllingCheckbox = taxDeductibleCheckbox;
+    } else if (taxableCheckbox) {
+        controllingCheckbox = taxableCheckbox;
+    } else if (businessExpenseCheckbox) {
+        controllingCheckbox = businessExpenseCheckbox;
+    }
+    
+    if (!controllingCheckbox) {
+        return; // No controlling checkbox found, exit early
+    }
+    
+    function toggleAttachmentField() {
+        if (controllingCheckbox.checked) {
+            attachmentField.style.display = 'block';
+        } else {
+            attachmentField.style.display = 'none';
+            // Clear the file input when hiding
+            const fileInput = attachmentField.querySelector('input[type="file"]');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        }
+    }
+    
+    // Set initial state
+    toggleAttachmentField();
+    
+    // Add event listener
+    controllingCheckbox.addEventListener('change', toggleAttachmentField);
+}

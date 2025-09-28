@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Third-party apps
+    "cloudinary_storage",
+    "cloudinary",
     # Custom apps
     "finance_tracker",
     "accounts",
@@ -190,3 +193,20 @@ TWOFA_ISSUER_NAME = "Finance Tracker"
 TWOFA_TOTP_INTERVAL = 30  # Time interval for TOTP codes in seconds
 TWOFA_TOTP_DIGITS = 6  # Number of digits in TOTP codes
 TWOFA_BACKUP_CODES_COUNT = 10  # Number of backup codes to generate
+
+# Cloudinary Settings
+CLOUDINARY_STORAGE = {
+    "CLOUDINARY_URL": os.getenv("CLOUDINARY_URL"),
+}
+
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+FILE_UPLOAD_PERMISSIONS = 0o644
+
+# Media files configuration
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Default file storage
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"

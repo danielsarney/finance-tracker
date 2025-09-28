@@ -114,6 +114,27 @@
                             </dl>
                         </div>
                     </div>
+                    {% if subscription.attachment %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <hr>
+                                <h6><i class="fas fa-paperclip me-2"></i>Attachment</h6>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file-alt fa-2x text-muted me-3"></i>
+                                    <div>
+                                        <a href="{{ subscription.attachment.url }}" 
+                                           target="_blank" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download me-2"></i>View/Download
+                                        </a>
+                                        <small class="text-muted d-block mt-1">
+                                            Uploaded: {{ subscription.updated_at|date:"M j, Y g:i A" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

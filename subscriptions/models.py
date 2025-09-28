@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 from finance_tracker.mixins import BaseFinancialModel
 
 
@@ -21,6 +22,13 @@ class Subscription(BaseFinancialModel):
     )
     is_business_expense = models.BooleanField(
         default=False, help_text="Whether this subscription is a business expense"
+    )
+    attachment = CloudinaryField(
+        "attachment",
+        folder="finance_tracker/subscriptions",
+        null=True,
+        blank=True,
+        help_text="Upload invoices, receipts, or bank statements",
     )
 
     class Meta:

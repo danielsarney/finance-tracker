@@ -16,6 +16,7 @@ class SubscriptionForm(forms.ModelForm):
             "category",
             "is_auto_renewed",
             "is_business_expense",
+            "attachment",
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
@@ -32,6 +33,12 @@ class SubscriptionForm(forms.ModelForm):
             "is_business_expense": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}
             ),
+            "attachment": forms.FileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": ".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx",
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -39,3 +46,18 @@ class SubscriptionForm(forms.ModelForm):
         self.fields["date"].initial = date.today()
         self.fields["next_billing_date"].initial = date.today()
         self.fields["category"].queryset = Category.objects.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_business_expense = cleaned_data.get("is_business_expense")
+        attachment = cleaned_data.get("attachment")
+
+        # If subscription is a business expense, attachment is recommended but not required
+        # We'll keep it optional for now, but could make it required if needed
+        if is_business_expense and not attachment:
+            # Just add a warning, don't fail validation
+            self.add_error(
+                "attachment", "Consider uploading documentation for business expenses."
+            )
+
+        return cleaned_data
