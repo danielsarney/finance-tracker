@@ -188,13 +188,28 @@ function initializeFormAutoSave() {
         // Load saved value
         const savedValue = localStorage.getItem(inputKey);
         if (savedValue && input.type !== 'password') {
-            input.value = savedValue;
+            try {
+                // Check if the input supports value setting and is in a valid state
+                if (input.type !== 'file' && input.type !== 'submit' && input.type !== 'button' && input.type !== 'reset') {
+                    // Validate that the input is not disabled or readonly
+                    if (!input.disabled && !input.readOnly) {
+                        input.value = savedValue;
+                    }
+                }
+            } catch (error) {
+                // Silently handle InvalidStateError and other value setting errors
+                console.warn('Could not restore saved value for input:', input.name, error.message);
+            }
         }
         
         // Save on input
         input.addEventListener('input', function() {
-            if (input.type !== 'password') {
-                localStorage.setItem(inputKey, input.value);
+            if (input.type !== 'password' && input.type !== 'file' && input.type !== 'submit' && input.type !== 'button' && input.type !== 'reset') {
+                try {
+                    localStorage.setItem(inputKey, input.value);
+                } catch (error) {
+                    console.warn('Could not save value for input:', input.name, error.message);
+                }
             }
         });
     });
