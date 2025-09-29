@@ -49,15 +49,5 @@ class SubscriptionForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        is_business_expense = cleaned_data.get("is_business_expense")
-        attachment = cleaned_data.get("attachment")
-
-        # If subscription is a business expense, attachment is recommended but not required
-        # We'll keep it optional for now, but could make it required if needed
-        if is_business_expense and not attachment:
-            # Just add a warning, don't fail validation
-            self.add_error(
-                "attachment", "Consider uploading documentation for business expenses."
-            )
 
         return cleaned_data

@@ -45,16 +45,5 @@ class ExpenseForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        is_tax_deductible = cleaned_data.get("is_tax_deductible")
-        attachment = cleaned_data.get("attachment")
-
-        # If expense is tax deductible, attachment is recommended but not required
-        # We'll keep it optional for now, but could make it required if needed
-        if is_tax_deductible and not attachment:
-            # Just add a warning, don't fail validation
-            self.add_error(
-                "attachment",
-                "Consider uploading a receipt for tax-deductible expenses.",
-            )
 
         return cleaned_data

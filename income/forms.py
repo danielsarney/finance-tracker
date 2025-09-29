@@ -43,15 +43,5 @@ class IncomeForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        is_taxable = cleaned_data.get("is_taxable")
-        attachment = cleaned_data.get("attachment")
-
-        # If income is taxable, attachment is recommended but not required
-        # We'll keep it optional for now, but could make it required if needed
-        if is_taxable and not attachment:
-            # Just add a warning, don't fail validation
-            self.add_error(
-                "attachment", "Consider uploading documentation for taxable income."
-            )
 
         return cleaned_data
