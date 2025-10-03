@@ -40,14 +40,16 @@ class ClockSession(models.Model):
         return 0
 
     def calculate_hours(self):
-        """Calculate exact hours worked (no rounding)"""
+        """Calculate hours worked, rounded down to the nearest minute"""
         if not self.clock_out_time:
             return 0
 
         duration = self.clock_out_time - self.clock_in_time
-        hours = duration.total_seconds() / 3600  # Convert to exact hours
+        total_minutes = int(
+            duration.total_seconds() // 60
+        )  # Round down to whole minutes
+        hours = total_minutes / 60  # Convert minutes to hours
 
-        # Return exact hours worked (no rounding)
         return round(hours, 2)  # Round to 2 decimal places for precision
 
     def calculate_cost(self, hourly_rate=None):
