@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
+import random
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -26,6 +27,15 @@ class CustomUserCreationForm(UserCreationForm):
         ),
     )
 
+    # Simple math CAPTCHA
+    math_answer = forms.IntegerField(
+        required=True,
+        widget=forms.NumberInput(
+            attrs={"class": "form-control", "placeholder": "Enter the answer"}
+        ),
+        label="",
+    )
+
     class Meta:
         model = User
         fields = ("email", "first_name", "last_name", "password1", "password2")
@@ -43,6 +53,24 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields["password2"].widget.attrs.update(
             {"class": "form-control", "placeholder": "Confirm your password"}
         )
+
+        # Generate random math question only if not POST data
+        if not self.data:
+            self.num1 = random.randint(1, 10)
+            self.num2 = random.randint(1, 10)
+            self.correct_answer = self.num1 + self.num2
+        else:
+            # If POST data, get the numbers from the form data
+            self.num1 = int(self.data.get("num1", 0))
+            self.num2 = int(self.data.get("num2", 0))
+            self.correct_answer = self.num1 + self.num2
+
+    def clean_math_answer(self):
+        """Validate the math CAPTCHA answer"""
+        user_answer = self.cleaned_data.get("math_answer")
+        if user_answer != self.correct_answer:
+            raise forms.ValidationError("Incorrect answer. Please try again.")
+        return user_answer
 
     def save(self, commit=True):
         user = super().save(commit=False)

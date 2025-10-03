@@ -73,6 +73,32 @@
                                 </div>
                             {% endif %}
                         </div>
+                        
+                        <!-- Bot Protection: Math CAPTCHA -->
+                        <div class="mb-3">
+                            <label for="{{ form.math_answer.id_for_label }}" class="form-label">
+                                Security Question <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    What is {{ form.num1 }} + {{ form.num2 }}?
+                                </span>
+                                {{ form.math_answer }}
+                            </div>
+                            <!-- Hidden fields to preserve the math question -->
+                            <input type="hidden" name="num1" value="{{ form.num1 }}">
+                            <input type="hidden" name="num2" value="{{ form.num2 }}">
+                            {% if form.math_answer.errors %}
+                                <div class="alert alert-danger mt-2 py-2">
+                                    {% for error in form.math_answer.errors %}<small class="fw-bold">{{ error }}</small>{% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="fas fa-shield-alt text-success me-1"></i>
+                                This helps us verify you're human
+                            </div>
+                        </div>
+                        
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-user-plus me-2"></i>Create Account
