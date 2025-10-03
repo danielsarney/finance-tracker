@@ -10,8 +10,8 @@ from finance_tracker.factories import (
     BatchWorkLogFactory,
     ClientFactory,
 )
-from .models import WorkLog
-from .forms import WorkLogForm
+from .models import WorkLog, ClockSession
+from .forms import WorkLogForm, ClockInForm
 from clients.models import Client as ClientModel
 
 
@@ -938,3 +938,341 @@ class WorkLogIntegrationTest(TestCase):
         # We can verify the hours and rate were updated correctly
         self.assertEqual(created_worklog.hours_worked, Decimal("10.00"))
         self.assertEqual(created_worklog.hourly_rate, Decimal("25.00"))
+
+
+class ClockSessionModelTest(TestCase):
+    """Test cases for the ClockSession model."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.user = UserFactory()
+        self.client = ClientFactory(user=self.user)
+
+    def test_clock_session_creation(self):
+        """Test that a clock session can be created."""
+        clock_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client,
+            clock_in_time=timezone.now()
+        )
+        
+        self.assertIsInstance(clock_session, ClockSession)
+        self.assertEqual(clock_session.user, self.user)
+        self.assertEqual(clock_session.client, self.client)
+        self.assertTrue(clock_session.is_active)
+        self.assertIsNone(clock_session.clock_out_time)
+
+    def test_clock_session_string_representation(self):
+        """Test the string representation of a clock session."""
+        clock_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client,
+            clock_in_time=timezone.now()
+        )
+        
+        expected_str = f"{self.client.company_name} - {clock_session.clock_in_time.strftime('%Y-%m-%d %H:%M')} (Active)"
+        self.assertEqual(str(clock_session), expected_str)
+
+    def test_clock_out_method(self):
+        """Test the clock_out method."""
+        clock_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client,
+            clock_in_time=timezone.now() - timedelta(hours=2)
+        )
+        
+        hours_worked = clock_session.clock_out()
+        
+        self.assertFalse(clock_session.is_active)
+        self.assertIsNotNone(clock_session.clock_out_time)
+        self.assertEqual(hours_worked, 2)  # Should round up to 2 hours
+
+    def test_calculate_hours_rounding(self):
+        """Test that hours are rounded up correctly."""
+        # Test 30 minutes - should round up to 1 hour
+        clock_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client,
+            clock_in_time=timezone.now() - timedelta(minutes=30)
+        )
+        clock_session.clock_out_time = timezone.now()
+        hours = clock_session.calculate_hours()
+        self.assertEqual(hours, 1)
+        
+        # Test 1 hour 15 minutes - should round up to 2 hours
+        clock_session2 = ClockSession.objects.create(
+            user=self.user,
+            client=self.client,
+            clock_in_time=timezone.now() - timedelta(hours=1, minutes=15)
+        )
+        clock_session2.clock_out_time = timezone.now()
+        hours2 = clock_session2.calculate_hours()
+        self.assertEqual(hours2, 2)
+
+    def test_get_duration_display(self):
+        """Test the duration display method."""
+        # Test active session
+        active_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client,
+            clock_in_time=timezone.now()
+        )
+        self.assertEqual(active_session.get_duration_display(), "In Progress")
+        
+        # Test completed session
+        completed_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client,
+            clock_in_time=timezone.now() - timedelta(hours=2, minutes=30),
+            clock_out_time=timezone.now(),
+            is_active=False
+        )
+        self.assertEqual(completed_session.get_duration_display(), "2h 30m")
+
+
+class ClockInFormTest(TestCase):
+    """Test cases for the ClockInForm."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.user = UserFactory()
+        self.client = ClientFactory(user=self.user)
+
+    def test_clock_in_form_valid_data(self):
+        """Test form with valid data."""
+        form = ClockInForm(data={'client': self.client.id}, user=self.user)
+        self.assertTrue(form.is_valid())
+
+    def test_clock_in_form_missing_client(self):
+        """Test form with missing client."""
+        form = ClockInForm(data={}, user=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn('client', form.errors)
+
+    def test_clock_in_form_user_filtering(self):
+        """Test that form only shows clients for the specified user."""
+        other_user = UserFactory()
+        other_client = ClientFactory(user=other_user)
+        
+        form = ClockInForm(user=self.user)
+        client_choices = [choice[0] for choice in form.fields['client'].queryset.values_list('id', flat=True)]
+        
+        self.assertIn(self.client.id, client_choices)
+        self.assertNotIn(other_client.id, client_choices)
+
+
+class ClockViewsTest(TestCase):
+    """Test cases for clock views."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.client = Client()
+        self.user = UserFactory()
+        self.client_model = ClientFactory(user=self.user)
+
+    def test_clock_dashboard_requires_login(self):
+        """Test that clock dashboard requires login."""
+        response = self.client.get(reverse("work:clock_dashboard"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response.url)
+
+    def test_clock_dashboard_with_authenticated_user(self):
+        """Test clock dashboard with authenticated user."""
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("work:clock_dashboard"))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "work/clock_dashboard.html")
+        self.assertIn("active_session", response.context)
+        self.assertIn("recent_sessions", response.context)
+        self.assertIn("clients", response.context)
+
+    def test_clock_in_requires_login(self):
+        """Test that clock in requires login."""
+        response = self.client.get(reverse("work:clock_in"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response.url)
+
+    def test_clock_in_with_authenticated_user(self):
+        """Test clock in with authenticated user."""
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("work:clock_in"))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "work/clock_in.html")
+        self.assertIsInstance(response.context["form"], ClockInForm)
+
+    def test_clock_in_post_valid_data(self):
+        """Test clocking in with valid data."""
+        self.client.force_login(self.user)
+        
+        response = self.client.post(reverse("work:clock_in"), {
+            'client': self.client_model.id
+        })
+        
+        self.assertEqual(response.status_code, 302)
+        
+        # Check that clock session was created
+        clock_session = ClockSession.objects.filter(
+            user=self.user,
+            client=self.client_model,
+            is_active=True
+        ).first()
+        self.assertIsNotNone(clock_session)
+
+    def test_clock_in_already_active_session(self):
+        """Test clocking in when already clocked in."""
+        self.client.force_login(self.user)
+        
+        # Create an active session
+        ClockSession.objects.create(
+            user=self.user,
+            client=self.client_model,
+            clock_in_time=timezone.now()
+        )
+        
+        response = self.client.post(reverse("work:clock_in"), {
+            'client': self.client_model.id
+        })
+        
+        self.assertEqual(response.status_code, 302)
+        # Should redirect back to dashboard with warning message
+
+    def test_clock_out_requires_login(self):
+        """Test that clock out requires login."""
+        clock_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client_model,
+            clock_in_time=timezone.now()
+        )
+        
+        response = self.client.get(reverse("work:clock_out", kwargs={'session_id': clock_session.id}))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response.url)
+
+    def test_clock_out_with_authenticated_user(self):
+        """Test clocking out with authenticated user."""
+        self.client.force_login(self.user)
+        
+        clock_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client_model,
+            clock_in_time=timezone.now() - timedelta(hours=1)
+        )
+        
+        response = self.client.get(reverse("work:clock_out", kwargs={'session_id': clock_session.id}))
+        
+        self.assertEqual(response.status_code, 302)
+        
+        # Check that session was clocked out
+        clock_session.refresh_from_db()
+        self.assertFalse(clock_session.is_active)
+        self.assertIsNotNone(clock_session.clock_out_time)
+
+    def test_clock_out_ajax(self):
+        """Test AJAX clock out endpoint."""
+        self.client.force_login(self.user)
+        
+        clock_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client_model,
+            clock_in_time=timezone.now() - timedelta(hours=1)
+        )
+        
+        response = self.client.post(reverse("work:clock_out_ajax", kwargs={'session_id': clock_session.id}))
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertEqual(data['hours_worked'], 1)
+        self.assertEqual(data['client_name'], self.client_model.company_name)
+
+
+class WorkLogIntegrationWithClockTest(TestCase):
+    """Test integration between clock sessions and work logs."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.user = UserFactory()
+        self.client_model = ClientFactory(user=self.user)
+
+    def test_work_log_creation_from_clock_session(self):
+        """Test that work log is created when clocking out."""
+        clock_session = ClockSession.objects.create(
+            user=self.user,
+            client=self.client_model,
+            clock_in_time=timezone.now() - timedelta(hours=2)
+        )
+        
+        # Clock out
+        hours_worked = clock_session.clock_out()
+        
+        # Check that work log was created
+        work_log = WorkLog.objects.filter(
+            user=self.user,
+            company_client=self.client_model,
+            work_date=clock_session.clock_in_time.date()
+        ).first()
+        
+        self.assertIsNotNone(work_log)
+        self.assertEqual(work_log.hours_worked, hours_worked)
+        self.assertEqual(work_log.hourly_rate, self.client_model.hourly_rate)
+
+    def test_work_log_update_from_multiple_clock_sessions(self):
+        """Test that work log is updated when clocking out multiple times for same client/date."""
+        # First clock session
+        clock_session1 = ClockSession.objects.create(
+            user=self.user,
+            client=self.client_model,
+            clock_in_time=timezone.now() - timedelta(hours=2)
+        )
+        hours1 = clock_session1.clock_out()
+        
+        # Second clock session for same client and date
+        clock_session2 = ClockSession.objects.create(
+            user=self.user,
+            client=self.client_model,
+            clock_in_time=timezone.now() - timedelta(hours=1)
+        )
+        hours2 = clock_session2.clock_out()
+        
+        # Check that only one work log exists and has combined hours
+        work_logs = WorkLog.objects.filter(
+            user=self.user,
+            company_client=self.client_model,
+            work_date=clock_session1.clock_in_time.date()
+        )
+        
+        self.assertEqual(work_logs.count(), 1)
+        work_log = work_logs.first()
+        self.assertEqual(work_log.hours_worked, hours1 + hours2)
+
+    def test_work_log_separation_by_client(self):
+        """Test that work logs are separated by client."""
+        client2 = ClientFactory(user=self.user)
+        
+        # Clock session for first client
+        clock_session1 = ClockSession.objects.create(
+            user=self.user,
+            client=self.client_model,
+            clock_in_time=timezone.now() - timedelta(hours=1)
+        )
+        clock_session1.clock_out()
+        
+        # Clock session for second client
+        clock_session2 = ClockSession.objects.create(
+            user=self.user,
+            client=client2,
+            clock_in_time=timezone.now() - timedelta(hours=1)
+        )
+        clock_session2.clock_out()
+        
+        # Check that two separate work logs exist
+        work_logs = WorkLog.objects.filter(
+            user=self.user,
+            work_date=clock_session1.clock_in_time.date()
+        )
+        
+        self.assertEqual(work_logs.count(), 2)
+        self.assertEqual(work_logs.filter(company_client=self.client_model).count(), 1)
+        self.assertEqual(work_logs.filter(company_client=client2).count(), 1)

@@ -31,9 +31,11 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = (
     os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else []
 )
-CSRF_TRUSTED_ORIGINS = (
-    [os.getenv("CSRF_TRUSTED_ORIGINS")] if os.getenv("CSRF_TRUSTED_ORIGINS") else []
-)
+# CSRF settings
+CSRF_COOKIE_HTTPONLY = True  # Keep CSRF cookie secure
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
+CSRF_USE_SESSIONS = False  # Use cookies (more secure for AJAX)
 
 # Application definition
 
@@ -148,7 +150,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/London"
 
 USE_I18N = True
 

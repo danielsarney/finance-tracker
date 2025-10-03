@@ -1,8 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from django.http import JsonResponse
 import json
-from .models import WorkLog
-from .forms import WorkLogForm
+from .models import WorkLog, ClockSession
+from .forms import WorkLogForm, ClockInForm
 from clients.models import Client
 from finance_tracker.view_mixins import create_crud_views
 
@@ -128,3 +131,135 @@ def worklog_update(request, pk):
         "work/worklog_form.html",
         {"form": form, "title": "Edit Work Log", "clients_data": clients_data},
     )
+
+
+@login_required
+def clock_dashboard(request):
+    """Main clock in/out dashboard"""
+    # Get active clock session for current user
+    active_session = ClockSession.objects.filter(
+        user=request.user, is_active=True
+    ).first()
+
+    # Get recent clock sessions
+    recent_sessions = ClockSession.objects.filter(user=request.user).order_by(
+        "-clock_in_time"
+    )[:10]
+
+    # Get all clients for clock in form
+    clients = Client.objects.filter(user=request.user).order_by("company_name")
+
+    context = {
+        "active_session": active_session,
+        "recent_sessions": recent_sessions,
+        "clients": clients,
+    }
+
+    return render(request, "work/clock_dashboard.html", context)
+
+
+@login_required
+def clock_in(request):
+    """Clock in for a client"""
+    if request.method == "POST":
+        form = ClockInForm(request.POST, user=request.user)
+        if form.is_valid():
+            client = form.cleaned_data["client"]
+
+            # Check if user already has an active session
+            active_session = ClockSession.objects.filter(
+                user=request.user, is_active=True
+            ).first()
+
+            if active_session:
+                messages.warning(
+                    request,
+                    f"You are already clocked in for {active_session.client.company_name}. Please clock out first.",
+                )
+                return redirect("work:clock_dashboard")
+
+            # Create new clock session
+            clock_session = ClockSession.objects.create(
+                user=request.user, client=client, clock_in_time=timezone.now()
+            )
+
+            messages.success(
+                request,
+                f"Clocked in for {client.company_name} at {clock_session.clock_in_time.strftime('%H:%M')}",
+            )
+            return redirect("work:clock_dashboard")
+    else:
+        form = ClockInForm(user=request.user)
+
+    return render(request, "work/clock_in.html", {"form": form})
+
+
+@login_required
+def clock_out(request, session_id):
+    """Clock out from a session"""
+    session = get_object_or_404(ClockSession, id=session_id, user=request.user)
+
+    if not session.is_active:
+        messages.error(request, "This session is already completed.")
+        return redirect("work:clock_dashboard")
+
+    # Clock out and calculate hours
+    hours_worked = session.clock_out()
+
+    # Create or update work log
+    work_date = session.clock_in_time.date()
+    work_log, is_new = WorkLog.create_or_update_from_clock_session(
+        user=request.user,
+        client=session.client,
+        work_date=work_date,
+        hours_to_add=hours_worked,
+    )
+
+    action = "created" if is_new else "updated"
+    messages.success(
+        request,
+        f"Clocked out! Work log {action} with {hours_worked} hour(s) for {session.client.company_name}.",
+    )
+
+    return redirect("work:clock_dashboard")
+
+
+@login_required
+def clock_out_ajax(request, session_id):
+    """AJAX endpoint for clocking out"""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    try:
+        session = ClockSession.objects.get(id=session_id, user=request.user)
+
+        if not session.is_active:
+            return JsonResponse({"error": "Session already completed"}, status=400)
+
+        # Clock out and calculate hours
+        hours_worked = session.clock_out()
+
+        # Create or update work log
+        work_date = session.clock_in_time.date()
+        work_log, is_new = WorkLog.create_or_update_from_clock_session(
+            user=request.user,
+            client=session.client,
+            work_date=work_date,
+            hours_to_add=hours_worked,
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "hours_worked": hours_worked,
+                "client_name": session.client.company_name,
+                "work_log_action": "created" if is_new else "updated",
+                "clock_out_time": session.clock_out_time.strftime("%H:%M"),
+                "duration_display": session.get_duration_display(),
+            }
+        )
+
+    except ClockSession.DoesNotExist:
+        return JsonResponse({"error": "Session not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

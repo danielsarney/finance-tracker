@@ -1,6 +1,6 @@
 from django import forms
 from datetime import date
-from .models import WorkLog
+from .models import WorkLog, ClockSession
 from clients.models import Client
 
 
@@ -67,3 +67,23 @@ class WorkLogForm(forms.ModelForm):
         self.fields["company_client"].queryset = Client.objects.filter(
             user=user
         ).order_by("company_name")
+
+
+class ClockInForm(forms.ModelForm):
+    """Form for clocking in"""
+
+    class Meta:
+        model = ClockSession
+        fields = ["client"]
+        widgets = {
+            "client": forms.Select(attrs={"class": "form-control", "id": "id_client"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            self.fields["client"].queryset = Client.objects.filter(user=user).order_by(
+                "company_name"
+            )

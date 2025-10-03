@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeInvoiceForm();
     initializeMileageCalculator();
     initializeTwoFactorAuth();
-    // initializeConditionalAttachmentFields(); // Disabled - attachment fields now always visible
+    initializeClockDashboard();
 });
 
 // Bootstrap Components Initialization
@@ -682,51 +682,37 @@ window.FinanceTracker = {
     }
 };
 
-// Conditional Attachment Fields
-function initializeConditionalAttachmentFields() {
-    // Look for different types of conditional attachment fields
-    const attachmentField = document.getElementById('attachment-field');
-    
-    if (!attachmentField) {
-        return; // No attachment field found, exit early
-    }
-    
-    // Check for different checkbox types that control attachment visibility
-    const taxDeductibleCheckbox = document.querySelector('input[id*="is_tax_deductible"]');
-    const taxableCheckbox = document.querySelector('input[id*="is_taxable"]');
-    const businessExpenseCheckbox = document.querySelector('input[id*="is_business_expense"]');
-    
-    // Determine which checkbox controls the attachment field
-    let controllingCheckbox = null;
-    
-    if (taxDeductibleCheckbox) {
-        controllingCheckbox = taxDeductibleCheckbox;
-    } else if (taxableCheckbox) {
-        controllingCheckbox = taxableCheckbox;
-    } else if (businessExpenseCheckbox) {
-        controllingCheckbox = businessExpenseCheckbox;
-    }
-    
-    if (!controllingCheckbox) {
-        return; // No controlling checkbox found, exit early
-    }
-    
-    function toggleAttachmentField() {
-        if (controllingCheckbox.checked) {
-            attachmentField.style.display = 'block';
-        } else {
-            attachmentField.style.display = 'none';
-            // Clear the file input when hiding
-            const fileInput = attachmentField.querySelector('input[type="file"]');
-            if (fileInput) {
-                fileInput.value = '';
+// Clock Dashboard Functionality
+function initializeClockDashboard() {
+    // Update duration display for active session
+    const durationElement = document.getElementById('current-duration');
+    if (durationElement) {
+        function updateDuration() {
+            const clockInTimeElement = document.querySelector('[data-clock-in-time]');
+            if (!clockInTimeElement) {
+                return;
             }
+            
+            const clockInTime = new Date(clockInTimeElement.dataset.clockInTime);
+            const now = new Date();
+            const diffMs = now - clockInTime;
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            
+            let durationText;
+            if (diffHours > 0) {
+                durationText = `${diffHours}h ${diffMinutes}m`;
+            } else {
+                durationText = `${diffMinutes}m`;
+            }
+            
+            durationElement.textContent = durationText;
         }
+        
+        // Update duration every minute
+        setInterval(updateDuration, 60000);
+        
+        // Initial update
+        updateDuration();
     }
-    
-    // Set initial state
-    toggleAttachmentField();
-    
-    // Add event listener
-    controllingCheckbox.addEventListener('change', toggleAttachmentField);
 }

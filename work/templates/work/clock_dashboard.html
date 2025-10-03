@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tz %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-clock me-2"></i>Clock In/Out</h2>
+            <a href="{% url 'work:worklog_list' %}" class="btn btn-outline-primary">
+                <i class="fas fa-list me-1"></i>View Work Logs
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Active Session Card -->
+{% if active_session %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-play-circle me-2"></i>Currently Clocked In</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 class="card-title">{{ active_session.client.company_name }}</h6>
+                        <p class="card-text mb-1">
+                            <strong>Clock In Time:</strong> {{ active_session.clock_in_time|localtime|date:"M d, Y" }} at {{ active_session.clock_in_time|localtime|time:"H:i" }}
+                            <span data-clock-in-time="{{ active_session.clock_in_time|date:'c' }}" style="display: none;"></span>
+                        </p>
+                        <p class="card-text mb-0">
+                            <strong>Duration:</strong> <span id="current-duration">{{ active_session.get_duration_display }}</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <form method="post" action="{% url 'work:clock_out' active_session.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('Are you sure you want to clock out?')">
+                                <i class="fas fa-stop-circle me-2"></i>Clock Out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Clock In Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-play-circle me-2"></i>Clock In</h5>
+            </div>
+            <div class="card-body">
+                {% if clients %}
+                <form method="post" action="{% url 'work:clock_in' %}">
+                    {% csrf_token %}
+                    <div class="row align-items-end">
+                        <div class="col-md-8">
+                            <label for="client" class="form-label">Select Client:</label>
+                            <select name="client" id="client" class="form-select" required>
+                                <option value="">Choose a client...</option>
+                                {% for client in clients %}
+                                <option value="{{ client.id }}">{{ client.company_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-play me-2"></i>Clock In
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No clients found. <a href="{% url 'clients:client_list' %}">Add a client</a> to start clocking in.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Sessions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Sessions</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_sessions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Date</th>
+                                <th>Clock In</th>
+                                <th>Clock Out</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in recent_sessions %}
+                            <tr>
+                                <td>{{ session.client.company_name }}</td>
+                                <td>{{ session.clock_in_time|localtime|date:"M d, Y" }}</td>
+                                <td>{{ session.clock_in_time|localtime|time:"H:i" }}</td>
+                                <td>
+                                    {% if session.clock_out_time %}
+                                        {{ session.clock_out_time|localtime|time:"H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ session.get_duration_display }}</td>
+                                <td>
+                                    {% if session.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Completed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-clock fa-3x mb-3"></i>
+                    <p>No clock sessions yet. Start by clocking in for a client!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

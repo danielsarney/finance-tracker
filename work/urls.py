@@ -9,4 +9,7 @@ urlpatterns = [
     path("<int:pk>/", views.worklog_detail, name="worklog_detail"),
     path("<int:pk>/edit/", views.worklog_update, name="worklog_update"),
     path("<int:pk>/delete/", views.worklog_delete, name="worklog_delete"),
+    path("clock/", views.clock_dashboard, name="clock_dashboard"),
+    path("clock/in/", views.clock_in, name="clock_in"),
+    path("clock/out/<int:session_id>/", views.clock_out, name="clock_out"),
 ]
