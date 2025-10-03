@@ -263,3 +263,25 @@ def clock_out_ajax(request, session_id):
         return JsonResponse({"error": "Session not found"}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+@login_required
+def clock_session_delete(request, session_id):
+    """Delete a clock session"""
+    session = get_object_or_404(ClockSession, id=session_id, user=request.user)
+
+    if request.method == "POST":
+        # Store session info for success message
+        client_name = session.client.company_name
+        session.delete()
+
+        messages.success(
+            request, f"Clock session for {client_name} has been deleted successfully."
+        )
+        return redirect("work:clock_dashboard")
+
+    # If GET request, show confirmation
+    context = {
+        "session": session,
+    }
+    return render(request, "work/clock_session_confirm_delete.html", context)

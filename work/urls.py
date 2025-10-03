@@ -12,4 +12,9 @@ urlpatterns = [
     path("clock/", views.clock_dashboard, name="clock_dashboard"),
     path("clock/in/", views.clock_in, name="clock_in"),
     path("clock/out/<int:session_id>/", views.clock_out, name="clock_out"),
+    path(
+        "clock/session/<int:session_id>/delete/",
+        views.clock_session_delete,
+        name="clock_session_delete",
+    ),
 ]

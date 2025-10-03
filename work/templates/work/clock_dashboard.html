@@ -107,6 +107,7 @@
                                 <th>Clock Out</th>
                                 <th>Duration</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,6 +130,12 @@
                                     {% else %}
                                         <span class="badge bg-secondary">Completed</span>
                                     {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'work:clock_session_delete' session.id %}" 
+                                       class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
                                 </td>
                             </tr>
                             {% endfor %}
