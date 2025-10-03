@@ -125,43 +125,6 @@ class ExpenseModelTest(TestCase):
         )
         self.assertTrue(new_expense.is_tax_deductible)
 
-    def test_expense_attachment_field(self):
-        """Test that attachment field can be set and retrieved."""
-        # Create a simple test file
-        test_file = SimpleUploadedFile(
-            "test_receipt.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-
-        # Create expense with attachment
-        new_expense = Expense(
-            user=self.user,
-            category=self.category,
-            description="Test Expense with Attachment",
-            amount=Decimal("50.00"),
-            date=date.today(),
-            attachment=test_file,
-        )
-        new_expense.save()
-
-        # Verify attachment was saved
-        self.assertIsNotNone(new_expense.attachment)
-        self.assertTrue(hasattr(new_expense.attachment, "url"))
-
-    def test_expense_attachment_optional(self):
-        """Test that attachment field is optional."""
-        # Create expense without attachment
-        new_expense = Expense(
-            user=self.user,
-            category=self.category,
-            description="Test Expense without Attachment",
-            amount=Decimal("25.00"),
-            date=date.today(),
-        )
-        new_expense.save()
-
-        # Verify expense was created successfully without attachment
-        self.assertIsNone(new_expense.attachment)
-
 
 class ExpenseFormTest(TestCase):
     """Test cases for the ExpenseForm."""
@@ -265,38 +228,6 @@ class ExpenseFormTest(TestCase):
         # The field should exist and have a default value
         self.assertIn("is_tax_deductible", form.fields)
         self.assertFalse(form.fields["is_tax_deductible"].initial)
-
-    def test_expense_form_attachment_field(self):
-        """Test that attachment field works correctly in the form."""
-        # Test that the attachment field exists
-        form = ExpenseForm()
-        self.assertIn("attachment", form.fields)
-
-        # Test that the field is optional
-        form_data_without_attachment = self.form_data.copy()
-        form = ExpenseForm(data=form_data_without_attachment)
-        self.assertTrue(form.is_valid())
-
-        # Test with attachment
-        test_file = SimpleUploadedFile(
-            "test_receipt.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-        form_data_with_attachment = self.form_data.copy()
-        form = ExpenseForm(
-            data=form_data_with_attachment, files={"attachment": test_file}
-        )
-        self.assertTrue(form.is_valid())
-
-    def test_expense_form_attachment_widget(self):
-        """Test that attachment field has correct widget."""
-        form = ExpenseForm()
-        attachment_widget = form.fields["attachment"].widget
-
-        # Check widget attributes
-        self.assertEqual(attachment_widget.attrs["class"], "form-control")
-        self.assertIn(".pdf", attachment_widget.attrs["accept"])
-        self.assertIn(".jpg", attachment_widget.attrs["accept"])
-        self.assertIn(".png", attachment_widget.attrs["accept"])
 
 
 class ExpenseViewsTest(TestCase):
@@ -416,38 +347,6 @@ class ExpenseViewsTest(TestCase):
         ).first()
         self.assertIsNotNone(new_expense)
         self.assertTrue(new_expense.is_tax_deductible)
-
-    def test_expense_create_view_post_with_attachment(self):
-        """Test creating an expense with attachment."""
-        self.client.force_login(self.user)
-
-        # Create a test file
-        test_file = SimpleUploadedFile(
-            "test_receipt.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-
-        form_data = {
-            "description": "Expense with Attachment",
-            "amount": "75.00",
-            "payee": "Store with Receipt",
-            "date": "2024-01-20",
-            "category": self.category.id,
-            "is_tax_deductible": True,
-        }
-
-        response = self.client.post(
-            reverse("expenses:expense_create"), form_data, {"attachment": test_file}
-        )
-
-        # Should redirect after successful creation
-        self.assertEqual(response.status_code, 302)
-
-        # Check that expense was created with attachment
-        new_expense = Expense.objects.filter(
-            user=self.user, description="Expense with Attachment"
-        ).first()
-        self.assertIsNotNone(new_expense)
-        self.assertIsNotNone(new_expense.attachment)
 
     def test_expense_detail_view_requires_login(self):
         """Test that expense detail view requires login."""

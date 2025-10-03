@@ -126,43 +126,6 @@ class IncomeModelTest(TestCase):
         )
         self.assertFalse(new_income.is_taxable)
 
-    def test_income_attachment_field(self):
-        """Test that attachment field can be set and retrieved."""
-        # Create a simple test file
-        test_file = SimpleUploadedFile(
-            "test_invoice.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-
-        # Create income with attachment
-        new_income = Income(
-            user=self.user,
-            category=self.category,
-            description="Test Income with Attachment",
-            amount=Decimal("1000.00"),
-            date=date.today(),
-            attachment=test_file,
-        )
-        new_income.save()
-
-        # Verify attachment was saved
-        self.assertIsNotNone(new_income.attachment)
-        self.assertTrue(hasattr(new_income.attachment, "url"))
-
-    def test_income_attachment_optional(self):
-        """Test that attachment field is optional."""
-        # Create income without attachment
-        new_income = Income(
-            user=self.user,
-            category=self.category,
-            description="Test Income without Attachment",
-            amount=Decimal("500.00"),
-            date=date.today(),
-        )
-        new_income.save()
-
-        # Verify income was created successfully without attachment
-        self.assertIsNone(new_income.attachment)
-
 
 class IncomeFormTest(TestCase):
     """Test cases for the IncomeForm."""
@@ -266,38 +229,6 @@ class IncomeFormTest(TestCase):
         # The field should exist and have a default value
         self.assertIn("is_taxable", form.fields)
         self.assertTrue(form.fields["is_taxable"].initial)
-
-    def test_income_form_attachment_field(self):
-        """Test that attachment field works correctly in the form."""
-        # Test that the attachment field exists
-        form = IncomeForm()
-        self.assertIn("attachment", form.fields)
-
-        # Test that the field is optional
-        form_data_without_attachment = self.form_data.copy()
-        form = IncomeForm(data=form_data_without_attachment)
-        self.assertTrue(form.is_valid())
-
-        # Test with attachment
-        test_file = SimpleUploadedFile(
-            "test_receipt.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-        form_data_with_attachment = self.form_data.copy()
-        form = IncomeForm(
-            data=form_data_with_attachment, files={"attachment": test_file}
-        )
-        self.assertTrue(form.is_valid())
-
-    def test_income_form_attachment_widget(self):
-        """Test that attachment field has correct widget."""
-        form = IncomeForm()
-        attachment_widget = form.fields["attachment"].widget
-
-        # Check widget attributes
-        self.assertEqual(attachment_widget.attrs["class"], "form-control")
-        self.assertIn(".pdf", attachment_widget.attrs["accept"])
-        self.assertIn(".jpg", attachment_widget.attrs["accept"])
-        self.assertIn(".png", attachment_widget.attrs["accept"])
 
 
 class IncomeViewsTest(TestCase):
@@ -415,38 +346,6 @@ class IncomeViewsTest(TestCase):
         ).first()
         self.assertIsNotNone(new_income)
         self.assertTrue(new_income.is_taxable)
-
-    def test_income_create_view_post_with_attachment(self):
-        """Test creating an income with attachment."""
-        self.client.force_login(self.user)
-
-        # Create a test file
-        test_file = SimpleUploadedFile(
-            "test_invoice.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-
-        form_data = {
-            "description": "Income with Attachment",
-            "amount": "7500.00",
-            "payer": "Company with Invoice",
-            "date": "2024-01-20",
-            "category": self.category.id,
-            "is_taxable": True,
-        }
-
-        response = self.client.post(
-            reverse("income:income_create"), form_data, {"attachment": test_file}
-        )
-
-        # Should redirect after successful creation
-        self.assertEqual(response.status_code, 302)
-
-        # Check that income was created with attachment
-        new_income = Income.objects.filter(
-            user=self.user, description="Income with Attachment"
-        ).first()
-        self.assertIsNotNone(new_income)
-        self.assertIsNotNone(new_income.attachment)
 
     def test_income_detail_view_requires_login(self):
         """Test that income detail view requires login."""

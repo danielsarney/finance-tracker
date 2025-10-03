@@ -57,6 +57,8 @@ class BaseCRUDMixin(BaseListViewMixin):
                 instance = form.save(commit=False)
                 instance.user = request.user
                 instance.save()
+                if self.success_message:
+                    messages.success(request, self.success_message)
                 return redirect(self.list_url_name)
         else:
             form = self.form_class()
@@ -74,6 +76,10 @@ class BaseCRUDMixin(BaseListViewMixin):
             form = self.form_class(request.POST, request.FILES, instance=instance)
             if form.is_valid():
                 form.save()
+                if self.success_message:
+                    messages.success(
+                        request, self.success_message.replace("created", "updated")
+                    )
                 return redirect(self.list_url_name)
         else:
             form = self.form_class(instance=instance)
@@ -89,6 +95,10 @@ class BaseCRUDMixin(BaseListViewMixin):
         instance = get_object_or_404(self.model, pk=pk, user=request.user)
         if request.method == "POST":
             instance.delete()
+            if self.success_message:
+                messages.success(
+                    request, self.success_message.replace("created", "deleted")
+                )
             return redirect(self.list_url_name)
 
         return render(

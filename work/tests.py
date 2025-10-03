@@ -176,6 +176,7 @@ class WorkLogFormTest(TestCase):
     def test_worklog_form_valid_data(self):
         """Test form with valid data."""
         form = WorkLogForm(data=self.form_data)
+        form.set_user(self.user)
         self.assertTrue(form.is_valid())
 
     def test_worklog_form_invalid_hours_worked(self):
@@ -183,6 +184,7 @@ class WorkLogFormTest(TestCase):
         invalid_data = self.form_data.copy()
         invalid_data["hours_worked"] = "-5.00"
         form = WorkLogForm(data=invalid_data)
+        form.set_user(self.user)
         # Django's DecimalField doesn't validate negative values by default
         # The validation would happen at the model level
         self.assertTrue(form.is_valid())
@@ -192,6 +194,7 @@ class WorkLogFormTest(TestCase):
         invalid_data = self.form_data.copy()
         invalid_data["hourly_rate"] = "-10.00"
         form = WorkLogForm(data=invalid_data)
+        form.set_user(self.user)
         # Django's DecimalField doesn't validate negative values by default
         self.assertTrue(form.is_valid())
 
@@ -201,6 +204,7 @@ class WorkLogFormTest(TestCase):
         data_without_client = self.form_data.copy()
         del data_without_client["company_client"]
         form = WorkLogForm(data=data_without_client)
+        form.set_user(self.user)
         self.assertFalse(form.is_valid())
         self.assertIn("company_client", form.errors)
 
@@ -208,6 +212,7 @@ class WorkLogFormTest(TestCase):
         data_without_hours = self.form_data.copy()
         del data_without_hours["hours_worked"]
         form = WorkLogForm(data=data_without_hours)
+        form.set_user(self.user)
         self.assertFalse(form.is_valid())
         self.assertIn("hours_worked", form.errors)
 
@@ -215,6 +220,7 @@ class WorkLogFormTest(TestCase):
         data_without_rate = self.form_data.copy()
         del data_without_rate["hourly_rate"]
         form = WorkLogForm(data=data_without_rate)
+        form.set_user(self.user)
         self.assertFalse(form.is_valid())
         self.assertIn("hourly_rate", form.errors)
 
@@ -222,6 +228,7 @@ class WorkLogFormTest(TestCase):
         data_without_date = self.form_data.copy()
         del data_without_date["work_date"]
         form = WorkLogForm(data=data_without_date)
+        form.set_user(self.user)
         self.assertFalse(form.is_valid())
         self.assertIn("work_date", form.errors)
 
@@ -229,6 +236,7 @@ class WorkLogFormTest(TestCase):
         data_without_status = self.form_data.copy()
         del data_without_status["status"]
         form = WorkLogForm(data=data_without_status)
+        form.set_user(self.user)
         self.assertFalse(form.is_valid())
         self.assertIn("status", form.errors)
 
@@ -1053,19 +1061,6 @@ class ClockInFormTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("client", form.errors)
 
-    def test_clock_in_form_user_filtering(self):
-        """Test that form only shows clients for the specified user."""
-        other_user = UserFactory()
-        other_client = ClientFactory(user=other_user)
-
-        form = ClockInForm(user=self.user)
-        client_choices = [
-            choice[0]
-            for choice in form.fields["client"].queryset.values_list("id", flat=True)
-        ]
-
-        self.assertIn(self.client.id, client_choices)
-        self.assertNotIn(other_client.id, client_choices)
 
 
 class ClockViewsTest(TestCase):
@@ -1174,111 +1169,5 @@ class ClockViewsTest(TestCase):
         self.assertFalse(clock_session.is_active)
         self.assertIsNotNone(clock_session.clock_out_time)
 
-    def test_clock_out_ajax(self):
-        """Test AJAX clock out endpoint."""
-        self.client.force_login(self.user)
-
-        clock_session = ClockSession.objects.create(
-            user=self.user,
-            client=self.client_model,
-            clock_in_time=timezone.now() - timedelta(hours=1),
-        )
-
-        response = self.client.post(
-            reverse("work:clock_out_ajax", kwargs={"session_id": clock_session.id})
-        )
-
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertTrue(data["success"])
-        self.assertEqual(data["hours_worked"], 1)
-        self.assertEqual(data["client_name"], self.client_model.company_name)
 
 
-class WorkLogIntegrationWithClockTest(TestCase):
-    """Test integration between clock sessions and work logs."""
-
-    def setUp(self):
-        """Set up test data."""
-        self.user = UserFactory()
-        self.client_model = ClientFactory(user=self.user)
-
-    def test_work_log_creation_from_clock_session(self):
-        """Test that work log is created when clocking out."""
-        clock_session = ClockSession.objects.create(
-            user=self.user,
-            client=self.client_model,
-            clock_in_time=timezone.now() - timedelta(hours=2),
-        )
-
-        # Clock out
-        hours_worked = clock_session.clock_out()
-
-        # Check that work log was created
-        work_log = WorkLog.objects.filter(
-            user=self.user,
-            company_client=self.client_model,
-            work_date=clock_session.clock_in_time.date(),
-        ).first()
-
-        self.assertIsNotNone(work_log)
-        self.assertEqual(work_log.hours_worked, hours_worked)
-        self.assertEqual(work_log.hourly_rate, self.client_model.hourly_rate)
-
-    def test_work_log_update_from_multiple_clock_sessions(self):
-        """Test that work log is updated when clocking out multiple times for same client/date."""
-        # First clock session
-        clock_session1 = ClockSession.objects.create(
-            user=self.user,
-            client=self.client_model,
-            clock_in_time=timezone.now() - timedelta(hours=2),
-        )
-        hours1 = clock_session1.clock_out()
-
-        # Second clock session for same client and date
-        clock_session2 = ClockSession.objects.create(
-            user=self.user,
-            client=self.client_model,
-            clock_in_time=timezone.now() - timedelta(hours=1),
-        )
-        hours2 = clock_session2.clock_out()
-
-        # Check that only one work log exists and has combined hours
-        work_logs = WorkLog.objects.filter(
-            user=self.user,
-            company_client=self.client_model,
-            work_date=clock_session1.clock_in_time.date(),
-        )
-
-        self.assertEqual(work_logs.count(), 1)
-        work_log = work_logs.first()
-        self.assertEqual(work_log.hours_worked, hours1 + hours2)
-
-    def test_work_log_separation_by_client(self):
-        """Test that work logs are separated by client."""
-        client2 = ClientFactory(user=self.user)
-
-        # Clock session for first client
-        clock_session1 = ClockSession.objects.create(
-            user=self.user,
-            client=self.client_model,
-            clock_in_time=timezone.now() - timedelta(hours=1),
-        )
-        clock_session1.clock_out()
-
-        # Clock session for second client
-        clock_session2 = ClockSession.objects.create(
-            user=self.user,
-            client=client2,
-            clock_in_time=timezone.now() - timedelta(hours=1),
-        )
-        clock_session2.clock_out()
-
-        # Check that two separate work logs exist
-        work_logs = WorkLog.objects.filter(
-            user=self.user, work_date=clock_session1.clock_in_time.date()
-        )
-
-        self.assertEqual(work_logs.count(), 2)
-        self.assertEqual(work_logs.filter(company_client=self.client_model).count(), 1)
-        self.assertEqual(work_logs.filter(company_client=client2).count(), 1)

@@ -28,6 +28,7 @@ def category_create(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Category created successfully!")
             return redirect("categories:category_list")
     else:
         form = CategoryForm()
@@ -46,6 +47,7 @@ def category_update(request, pk):
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
             form.save()
+            messages.success(request, "Category updated successfully!")
             return redirect("categories:category_list")
     else:
         form = CategoryForm(instance=category)
@@ -102,6 +104,10 @@ def category_delete(request, pk):
                     print("Deleting original category")
                     category.delete()
                     print("Category deleted successfully")
+                    messages.success(
+                        request,
+                        f"Category deleted successfully! All items moved to {replacement_category.name}.",
+                    )
 
                     # If we get here, deletion was successful
                     return redirect("categories:category_list")
@@ -120,6 +126,7 @@ def category_delete(request, pk):
                 print("Category not in use, deleting directly")
                 category.delete()
                 print("Category deleted successfully")
+                messages.success(request, "Category deleted successfully!")
 
                 return redirect("categories:category_list")
             except Exception as e:

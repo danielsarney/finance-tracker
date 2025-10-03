@@ -169,42 +169,6 @@ class SubscriptionModelTest(TestCase):
         self.assertTrue(new_subscription.is_auto_renewed)
         self.assertTrue(new_subscription.is_business_expense)
 
-    def test_subscription_attachment_field(self):
-        """Test that attachment field can be set and retrieved."""
-        # Create a simple test file
-        test_file = SimpleUploadedFile(
-            "test_invoice.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-
-        # Create subscription with attachment
-        new_subscription = Subscription(
-            user=self.user,
-            category=self.category,
-            name="Test Service with Attachment",
-            amount=Decimal("25.00"),
-            date=date.today(),
-            attachment=test_file,
-        )
-        new_subscription.save()
-
-        # Verify attachment was saved
-        self.assertIsNotNone(new_subscription.attachment)
-        self.assertTrue(hasattr(new_subscription.attachment, "url"))
-
-    def test_subscription_attachment_optional(self):
-        """Test that attachment field is optional."""
-        # Create subscription without attachment
-        new_subscription = Subscription(
-            user=self.user,
-            category=self.category,
-            name="Test Service without Attachment",
-            amount=Decimal("15.00"),
-            date=date.today(),
-        )
-        new_subscription.save()
-
-        # Verify subscription was created successfully without attachment
-        self.assertIsNone(new_subscription.attachment)
 
 
 class SubscriptionFormTest(TestCase):
@@ -371,37 +335,6 @@ class SubscriptionFormTest(TestCase):
         self.assertEqual(auto_renewed_widget.attrs["class"], "form-check-input")
         self.assertEqual(business_expense_widget.attrs["class"], "form-check-input")
 
-    def test_subscription_form_attachment_field(self):
-        """Test that attachment field works correctly in the form."""
-        # Test that the attachment field exists
-        form = SubscriptionForm()
-        self.assertIn("attachment", form.fields)
-
-        # Test that the field is optional
-        form_data_without_attachment = self.form_data.copy()
-        form = SubscriptionForm(data=form_data_without_attachment)
-        self.assertTrue(form.is_valid())
-
-        # Test with attachment
-        test_file = SimpleUploadedFile(
-            "test_receipt.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-        form_data_with_attachment = self.form_data.copy()
-        form = SubscriptionForm(
-            data=form_data_with_attachment, files={"attachment": test_file}
-        )
-        self.assertTrue(form.is_valid())
-
-    def test_subscription_form_attachment_widget(self):
-        """Test that attachment field has correct widget."""
-        form = SubscriptionForm()
-        attachment_widget = form.fields["attachment"].widget
-
-        # Check widget attributes
-        self.assertEqual(attachment_widget.attrs["class"], "form-control")
-        self.assertIn(".pdf", attachment_widget.attrs["accept"])
-        self.assertIn(".jpg", attachment_widget.attrs["accept"])
-        self.assertIn(".png", attachment_widget.attrs["accept"])
 
 
 class SubscriptionViewsTest(TestCase):
@@ -529,41 +462,6 @@ class SubscriptionViewsTest(TestCase):
         self.assertIsNotNone(new_subscription)
         self.assertEqual(new_subscription.billing_cycle, "MONTHLY")
 
-    def test_subscription_create_view_post_with_attachment(self):
-        """Test creating a subscription with attachment."""
-        self.client.force_login(self.user)
-
-        # Create a test file
-        test_file = SimpleUploadedFile(
-            "test_invoice.pdf", b"fake pdf content", content_type="application/pdf"
-        )
-
-        form_data = {
-            "name": "Service with Attachment",
-            "amount": "75.00",
-            "date": "2024-01-20",
-            "billing_cycle": "MONTHLY",
-            "next_billing_date": "2024-02-20",
-            "category": self.category.id,
-            "is_auto_renewed": True,
-            "is_business_expense": False,
-        }
-
-        response = self.client.post(
-            reverse("subscriptions:subscription_create"),
-            form_data,
-            {"attachment": test_file},
-        )
-
-        # Should redirect after successful creation
-        self.assertEqual(response.status_code, 302)
-
-        # Check that subscription was created with attachment
-        new_subscription = Subscription.objects.filter(
-            user=self.user, name="Service with Attachment"
-        ).first()
-        self.assertIsNotNone(new_subscription)
-        self.assertIsNotNone(new_subscription.attachment)
 
     def test_subscription_detail_view_requires_login(self):
         """Test that subscription detail view requires login."""

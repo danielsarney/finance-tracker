@@ -15,13 +15,14 @@ class WorkLogForm(forms.ModelForm):
                 "placeholder": "e.g., 1.10 for 1h 10m, 0.30 for 30m",
             }
         ),
-        required=True,
+        required=False,  # Make it optional since we also have hours_worked
     )
 
     class Meta:
         model = WorkLog
         fields = [
             "company_client",
+            "hours_worked",
             "hourly_rate",
             "work_date",
             "status",
@@ -32,6 +33,14 @@ class WorkLogForm(forms.ModelForm):
         widgets = {
             "company_client": forms.Select(
                 attrs={"class": "form-control", "id": "id_company_client"}
+            ),
+            "hours_worked": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.25",
+                    "min": "0",
+                    "id": "id_hours_worked",
+                }
             ),
             "hourly_rate": forms.NumberInput(
                 attrs={
@@ -95,6 +104,21 @@ class WorkLogForm(forms.ModelForm):
             except ValueError as e:
                 raise forms.ValidationError(str(e))
         return intuitive_time
+
+    def clean(self):
+        """Clean form data and handle hours_worked conversion"""
+        cleaned_data = super().clean()
+
+        # If hours_worked_intuitive is provided, use it to set hours_worked
+        intuitive_time = cleaned_data.get("hours_worked_intuitive")
+        if intuitive_time:
+            try:
+                decimal_hours = WorkLog.convert_intuitive_to_decimal(intuitive_time)
+                cleaned_data["hours_worked"] = decimal_hours
+            except ValueError as e:
+                raise forms.ValidationError({"hours_worked_intuitive": str(e)})
+
+        return cleaned_data
 
 
 class ClockInForm(forms.ModelForm):

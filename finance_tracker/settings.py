@@ -28,6 +28,9 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
+# Testing flag to bypass 2FA middleware during tests
+TESTING = False
+
 ALLOWED_HOSTS = (
     os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else []
 )

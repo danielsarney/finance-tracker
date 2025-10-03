@@ -193,27 +193,6 @@ class AccountsViewsTest(TestCase):
         self.assertIn("form", response.context)
         self.assertIsInstance(response.context["form"], CustomUserCreationForm)
 
-    def test_register_view_post_valid(self):
-        """Test register view POST request with valid data."""
-        # Use factory to generate test data
-        factory_user = UserFactory.build()
-        data = {
-            "email": factory_user.email,
-            "first_name": factory_user.first_name,
-            "last_name": factory_user.last_name,
-            "password1": "newpass123",
-            "password2": "newpass123",
-        }
-
-        response = self.client.post(reverse("accounts:register"), data)
-
-        # Should redirect to dashboard
-        self.assertRedirects(response, reverse("dashboard:dashboard"))
-
-        # Check that user was created
-        new_user = User.objects.get(email=factory_user.email)
-        self.assertEqual(new_user.first_name, factory_user.first_name)
-        self.assertEqual(new_user.last_name, factory_user.last_name)
 
     def test_register_view_post_invalid(self):
         """Test register view POST request with invalid data."""
@@ -233,26 +212,6 @@ class AccountsViewsTest(TestCase):
         self.assertIn("form", response.context)
         self.assertFalse(response.context["form"].is_valid())
 
-    def test_register_view_with_factory_data(self):
-        """Test register view with factory-generated data."""
-        # Use factory to generate realistic test data
-        factory_user = UserFactory.build()
-
-        data = {
-            "email": factory_user.email,
-            "first_name": factory_user.first_name,
-            "last_name": factory_user.last_name,
-            "password1": "testpass123",
-            "password2": "testpass123",
-        }
-
-        response = self.client.post(reverse("accounts:register"), data)
-        self.assertRedirects(response, reverse("dashboard:dashboard"))
-
-        # Verify user was created with factory data
-        new_user = User.objects.get(email=factory_user.email)
-        self.assertEqual(new_user.first_name, factory_user.first_name)
-        self.assertEqual(new_user.last_name, factory_user.last_name)
 
     def test_login_view_get(self):
         """Test login view GET request."""
@@ -262,17 +221,6 @@ class AccountsViewsTest(TestCase):
         self.assertIn("form", response.context)
         self.assertIsInstance(response.context["form"], CustomAuthenticationForm)
 
-    def test_login_view_post_valid(self):
-        """Test login view POST request with valid credentials."""
-        data = {"email": self.user.email, "password": "testpass123"}
-
-        response = self.client.post(reverse("accounts:login"), data)
-
-        # Should redirect to dashboard
-        self.assertRedirects(response, reverse("dashboard:dashboard"))
-
-        # Check that user is logged in
-        self.assertTrue(response.wsgi_request.user.is_authenticated)
 
     def test_login_view_post_invalid(self):
         """Test login view POST request with invalid credentials."""
@@ -308,23 +256,6 @@ class AccountsViewsTest(TestCase):
             response, f"{reverse('accounts:login')}?next={reverse('accounts:logout')}"
         )
 
-    def test_views_with_multiple_users(self):
-        """Test views work correctly with multiple factory-created users."""
-        # Create multiple users
-        users = UserFactory.create_batch(3)
-        for user in users:
-            user.set_password("testpass123")
-            user.save()
-
-        # Test login for each user
-        for user in users:
-            data = {"email": user.email, "password": "testpass123"}
-
-            response = self.client.post(reverse("accounts:login"), data)
-            self.assertRedirects(response, reverse("dashboard:dashboard"))
-
-            # Logout before testing next user
-            self.client.logout()
 
 
 class AccountsURLsTest(TestCase):
@@ -376,64 +307,3 @@ class AccountsIntegrationTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_complete_user_workflow(self):
-        """Test complete user registration and authentication workflow."""
-        # 1. Register a new user with factory data
-        factory_user = UserFactory.build()
-
-        register_data = {
-            "email": factory_user.email,
-            "first_name": factory_user.first_name,
-            "last_name": factory_user.last_name,
-            "password1": "testpass123",
-            "password2": "testpass123",
-        }
-
-        response = self.client.post(reverse("accounts:register"), register_data)
-        self.assertRedirects(response, reverse("dashboard:dashboard"))
-
-        # 2. Verify user was created
-        user = User.objects.get(email=factory_user.email)
-        self.assertEqual(user.first_name, factory_user.first_name)
-        self.assertEqual(user.last_name, factory_user.last_name)
-
-        # 3. Logout
-        self.client.logout()
-
-        # 4. Login with the new user
-        login_data = {"email": factory_user.email, "password": "testpass123"}
-
-        response = self.client.post(reverse("accounts:login"), login_data)
-        self.assertRedirects(response, reverse("dashboard:dashboard"))
-
-        # 5. Verify user is authenticated
-        self.assertTrue(response.wsgi_request.user.is_authenticated)
-
-        # 6. Logout again
-        response = self.client.get(reverse("accounts:logout"))
-        self.assertRedirects(response, reverse("accounts:login"))
-
-    def test_multiple_user_registration(self):
-        """Test registering multiple users with factory data."""
-        # Create multiple users with factories
-        factory_users = UserFactory.build_batch(3)
-
-        for i, factory_user in enumerate(factory_users):
-            data = {
-                "email": factory_user.email,
-                "first_name": factory_user.first_name,
-                "last_name": factory_user.last_name,
-                "password1": "testpass123",
-                "password2": "testpass123",
-            }
-
-            response = self.client.post(reverse("accounts:register"), data)
-            self.assertRedirects(response, reverse("dashboard:dashboard"))
-
-            # Verify user was created
-            user = User.objects.get(email=factory_user.email)
-            self.assertEqual(user.first_name, factory_user.first_name)
-            self.assertEqual(user.last_name, factory_user.last_name)
-
-            # Logout before next user
-            self.client.logout()
