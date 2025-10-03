@@ -4,8 +4,6 @@ from django import forms
 from decimal import Decimal
 from datetime import date, timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
-from PIL import Image
-import io
 
 from finance_tracker.factories import (
     UserFactory,

@@ -8,6 +8,7 @@ Finance Tracker is a full-featured personal finance management application built
 - **Income Tracking**: Record and monitor various income sources
 - **Subscription Monitoring**: Keep track of recurring subscription costs and renewal dates
 - **Work Time Logging**: Log work hours and track productivity
+- **Clock In/Out System**: Real-time clock in/out functionality with automatic work log generation
 - **Category Management**: Organize transactions with customizable categories
 - **Dashboard Overview**: Visual summary of financial data with charts and statistics
 - **Responsive Design**: Mobile-friendly interface for on-the-go financial tracking

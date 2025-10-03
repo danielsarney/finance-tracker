@@ -1,25 +1,11 @@
 from django.test import TestCase, Client
-from django.contrib.auth.models import User
 from django.urls import reverse
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.http import HttpRequest
-from unittest.mock import patch, MagicMock
 import json
 import pyotp
-import qrcode
-import io
 import base64
-
 from finance_tracker.factories import UserFactory
 from twofa.models import TwoFactorAuth
 from twofa.forms import TwoFactorSetupForm, TwoFactorVerifyForm
-from twofa.views import (
-    setup_twofa,
-    verify_twofa,
-    twofa_status,
-    verify_twofa_ajax,
-    logout_view,
-)
 from twofa.middleware import TwoFactorAuthMiddleware
 
 
