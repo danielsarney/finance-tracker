@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 import math
+from decimal import Decimal
 
 
 class ClockSession(models.Model):
@@ -39,16 +40,25 @@ class ClockSession(models.Model):
         return 0
 
     def calculate_hours(self):
-        """Calculate hours worked, rounding up to the nearest hour"""
+        """Calculate exact hours worked (no rounding)"""
         if not self.clock_out_time:
             return 0
 
         duration = self.clock_out_time - self.clock_in_time
-        hours = duration.total_seconds() / 3600  # Convert to hours
+        hours = duration.total_seconds() / 3600  # Convert to exact hours
 
-        # Round up to the nearest hour (minimum 1 hour)
-        rounded_hours = max(1, math.ceil(hours))
-        return rounded_hours
+        # Return exact hours worked (no rounding)
+        return round(hours, 2)  # Round to 2 decimal places for precision
+
+    def calculate_cost(self, hourly_rate=None):
+        """Calculate the total cost for this session"""
+        if hourly_rate is None:
+            hourly_rate = float(self.client.hourly_rate) if self.client else 0
+        else:
+            hourly_rate = float(hourly_rate)
+
+        hours = self.calculate_hours()
+        return round(hours * hourly_rate, 2)
 
     def get_duration_display(self):
         """Get human-readable duration"""
@@ -106,9 +116,46 @@ class WorkLog(models.Model):
 
         super().save(*args, **kwargs)
 
+    @staticmethod
+    def convert_intuitive_to_decimal(intuitive_time):
+        """Convert intuitive time format (1.10 = 1h 10m) to decimal hours"""
+        try:
+            # Split by decimal point
+            parts = str(intuitive_time).split(".")
+            hours = int(parts[0])
+            minutes = int(parts[1]) if len(parts) > 1 else 0
+
+            # Validate minutes (should be 0-59)
+            if minutes > 59:
+                raise ValueError("Minutes must be between 0 and 59")
+
+            # Convert to decimal hours
+            decimal_hours = hours + (minutes / 60)
+            return round(decimal_hours, 2)
+        except (ValueError, IndexError):
+            raise ValueError(
+                "Invalid time format. Use format like 1.10 for 1 hour 10 minutes"
+            )
+
+    @staticmethod
+    def convert_decimal_to_intuitive(decimal_hours):
+        """Convert decimal hours to intuitive format (1.42h = 1.25 = 1h 25m)"""
+        hours = int(decimal_hours)
+        minutes = round((decimal_hours - hours) * 60)
+
+        # Handle rounding edge case
+        if minutes >= 60:
+            hours += 1
+            minutes = 0
+
+        return f"{hours}.{minutes:02d}"
+
     @classmethod
     def create_or_update_from_clock_session(cls, user, client, work_date, hours_to_add):
         """Create a new work log or update existing one for the same client and date"""
+        # Convert hours_to_add to Decimal to match the DecimalField
+        hours_to_add = Decimal(str(hours_to_add))
+
         try:
             # Try to find existing work log for the same client and date
             work_log = cls.objects.get(

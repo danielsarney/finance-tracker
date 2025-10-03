@@ -5,11 +5,23 @@ from clients.models import Client
 
 
 class WorkLogForm(forms.ModelForm):
+    # Custom field for intuitive time entry
+    hours_worked_intuitive = forms.CharField(
+        label="Hours Worked",
+        help_text="Enter time in format like 1.10 for 1 hour 10 minutes, or 0.30 for 30 minutes",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "e.g., 1.10 for 1h 10m, 0.30 for 30m",
+            }
+        ),
+        required=True,
+    )
+
     class Meta:
         model = WorkLog
         fields = [
             "company_client",
-            "hours_worked",
             "hourly_rate",
             "work_date",
             "status",
@@ -20,9 +32,6 @@ class WorkLogForm(forms.ModelForm):
         widgets = {
             "company_client": forms.Select(
                 attrs={"class": "form-control", "id": "id_company_client"}
-            ),
-            "hours_worked": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.25", "min": "0"}
             ),
             "hourly_rate": forms.NumberInput(
                 attrs={
@@ -52,6 +61,12 @@ class WorkLogForm(forms.ModelForm):
         # Filter clients to only show the current user's clients
         if "instance" in kwargs and kwargs["instance"]:
             user = kwargs["instance"].user
+            # Convert existing hours_worked to intuitive format for editing
+            if kwargs["instance"].hours_worked:
+                intuitive_time = WorkLog.convert_decimal_to_intuitive(
+                    float(kwargs["instance"].hours_worked)
+                )
+                self.fields["hours_worked_intuitive"].initial = intuitive_time
         else:
             # For new work logs, we'll need to get the user from the request
             # This will be handled in the view
@@ -67,6 +82,19 @@ class WorkLogForm(forms.ModelForm):
         self.fields["company_client"].queryset = Client.objects.filter(
             user=user
         ).order_by("company_name")
+
+    def clean_hours_worked_intuitive(self):
+        """Convert intuitive time format to decimal hours"""
+        intuitive_time = self.cleaned_data.get("hours_worked_intuitive")
+        if intuitive_time:
+            try:
+                decimal_hours = WorkLog.convert_intuitive_to_decimal(intuitive_time)
+                # Set the actual hours_worked field
+                self.cleaned_data["hours_worked"] = decimal_hours
+                return intuitive_time
+            except ValueError as e:
+                raise forms.ValidationError(str(e))
+        return intuitive_time
 
 
 class ClockInForm(forms.ModelForm):
