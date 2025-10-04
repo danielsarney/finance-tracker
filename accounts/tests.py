@@ -10,12 +10,19 @@ class CustomUserCreationFormTest(TestCase):
 
     def setUp(self):
         self.factory_user = UserFactory.build()
+        # Generate math CAPTCHA data
+        self.num1 = 5
+        self.num2 = 3
+        self.math_answer = self.num1 + self.num2
         self.valid_data = {
             "email": self.factory_user.email,
             "first_name": self.factory_user.first_name,
             "last_name": self.factory_user.last_name,
             "password1": "testpass123",
             "password2": "testpass123",
+            "math_answer": self.math_answer,
+            "num1": self.num1,
+            "num2": self.num2,
         }
 
     def test_form_valid_data(self):
@@ -25,7 +32,14 @@ class CustomUserCreationFormTest(TestCase):
 
     def test_form_missing_required_fields(self):
         """Test form validation with missing required fields."""
-        required_fields = ["email", "first_name", "last_name", "password1", "password2"]
+        required_fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "password1",
+            "password2",
+            "math_answer",
+        ]
 
         for field in required_fields:
             data = self.valid_data.copy()
@@ -87,12 +101,20 @@ class CustomUserCreationFormTest(TestCase):
         # Use factory to generate realistic test data
         factory_user = UserFactory.build()  # Build but don't save
 
+        # Generate math CAPTCHA data
+        num1 = 7
+        num2 = 2
+        math_answer = num1 + num2
+
         test_data = {
             "email": factory_user.email,
             "first_name": factory_user.first_name,
             "last_name": factory_user.last_name,
             "password1": "testpass123",
             "password2": "testpass123",
+            "math_answer": math_answer,
+            "num1": num1,
+            "num2": num2,
         }
 
         form = CustomUserCreationForm(data=test_data)
@@ -193,7 +215,6 @@ class AccountsViewsTest(TestCase):
         self.assertIn("form", response.context)
         self.assertIsInstance(response.context["form"], CustomUserCreationForm)
 
-
     def test_register_view_post_invalid(self):
         """Test register view POST request with invalid data."""
         data = {
@@ -212,7 +233,6 @@ class AccountsViewsTest(TestCase):
         self.assertIn("form", response.context)
         self.assertFalse(response.context["form"].is_valid())
 
-
     def test_login_view_get(self):
         """Test login view GET request."""
         response = self.client.get(reverse("accounts:login"))
@@ -220,7 +240,6 @@ class AccountsViewsTest(TestCase):
         self.assertTemplateUsed(response, "accounts/login.html")
         self.assertIn("form", response.context)
         self.assertIsInstance(response.context["form"], CustomAuthenticationForm)
-
 
     def test_login_view_post_invalid(self):
         """Test login view POST request with invalid credentials."""
@@ -255,7 +274,6 @@ class AccountsViewsTest(TestCase):
         self.assertRedirects(
             response, f"{reverse('accounts:login')}?next={reverse('accounts:logout')}"
         )
-
 
 
 class AccountsURLsTest(TestCase):
@@ -306,4 +324,3 @@ class AccountsIntegrationTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-

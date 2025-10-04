@@ -1,8 +1,12 @@
 from django.test import TestCase, Client, RequestFactory
 from django.utils import timezone
 from django.core.paginator import Paginator
+from django.core.cache import cache
+from django.contrib import messages
+from django.contrib.messages.storage.fallback import FallbackStorage
 from decimal import Decimal
 from datetime import date, datetime, timedelta
+import time
 
 from finance_tracker.factories import (
     UserFactory,
@@ -21,6 +25,7 @@ from .utils import (
 )
 from .mixins import BaseListViewMixin
 from .view_mixins import BaseCRUDMixin, create_crud_views
+from .rate_limiting import rate_limit, get_client_ip
 from expenses.models import Expense
 from income.models import Income
 from categories.models import Category
@@ -791,3 +796,465 @@ class FinanceTrackerIntegrationTest(TestCase):
 
         self.assertEqual(len(page_obj), 2)
         self.assertEqual(page_obj.number, 1)
+
+
+class RateLimitingTest(TestCase):
+    """Test cases for rate limiting functionality."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.factory = RequestFactory()
+        self.client = Client()
+
+        # Clear cache before each test
+        cache.clear()
+
+    def tearDown(self):
+        """Clean up after each test."""
+        cache.clear()
+
+    def test_get_client_ip_direct_connection(self):
+        """Test get_client_ip with direct connection (no proxy)."""
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        ip = get_client_ip(request)
+        self.assertEqual(ip, "192.168.1.100")
+
+    def test_get_client_ip_with_x_forwarded_for(self):
+        """Test get_client_ip with X-Forwarded-For header."""
+        request = self.factory.get("/test/")
+        request.META["HTTP_X_FORWARDED_FOR"] = (
+            "203.0.113.195, 70.41.3.18, 150.172.238.178"
+        )
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        ip = get_client_ip(request)
+        self.assertEqual(ip, "203.0.113.195")
+
+    def test_get_client_ip_with_single_x_forwarded_for(self):
+        """Test get_client_ip with single X-Forwarded-For value."""
+        request = self.factory.get("/test/")
+        request.META["HTTP_X_FORWARDED_FOR"] = "203.0.113.195"
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        ip = get_client_ip(request)
+        self.assertEqual(ip, "203.0.113.195")
+
+    def test_get_client_ip_with_whitespace(self):
+        """Test get_client_ip handles whitespace in X-Forwarded-For."""
+        request = self.factory.get("/test/")
+        request.META["HTTP_X_FORWARDED_FOR"] = "  203.0.113.195  , 70.41.3.18  "
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        ip = get_client_ip(request)
+        self.assertEqual(ip, "203.0.113.195")
+
+    def test_rate_limit_decorator_allows_normal_requests(self):
+        """Test that rate limit decorator allows normal requests."""
+
+        @rate_limit(max_attempts=3, window_minutes=1)
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # First request should succeed
+        response = test_view(request)
+        self.assertEqual(response, "Success")
+
+    def test_rate_limit_decorator_blocks_excessive_requests(self):
+        """Test that rate limit decorator blocks excessive requests."""
+
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # First two requests should succeed
+        response1 = test_view(request)
+        self.assertEqual(response1, "Success")
+
+        response2 = test_view(request)
+        self.assertEqual(response2, "Success")
+
+        # Third request should be blocked
+        response3 = test_view(request)
+        self.assertEqual(response3.status_code, 429)
+        self.assertIn("Rate limit exceeded", response3.content.decode())
+
+    def test_rate_limit_decorator_with_post_request(self):
+        """Test rate limit decorator with POST requests."""
+
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.post("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # First two requests should succeed
+        response1 = test_view(request)
+        self.assertEqual(response1, "Success")
+
+        response2 = test_view(request)
+        self.assertEqual(response2, "Success")
+
+        # Third request should be blocked
+        response3 = test_view(request)
+        self.assertEqual(response3.status_code, 429)
+
+    def test_rate_limit_decorator_with_get_request_message(self):
+        """Test that GET requests are also blocked with 429 status."""
+
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # First two requests should succeed
+        test_view(request)
+        test_view(request)
+
+        # Third request should be blocked with 429 status
+        response = test_view(request)
+        self.assertEqual(response.status_code, 429)
+        self.assertIn("Rate limit exceeded", response.content.decode())
+
+    def test_rate_limit_decorator_different_ips(self):
+        """Test that rate limiting is per IP address."""
+
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def test_view(request):
+            return "Success"
+
+        # First IP
+        request1 = self.factory.get("/test/")
+        request1.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Second IP
+        request2 = self.factory.get("/test/")
+        request2.META["REMOTE_ADDR"] = "192.168.1.101"
+
+        # Both IPs should be able to make 2 requests each
+        response1a = test_view(request1)
+        response1b = test_view(request1)
+        response2a = test_view(request2)
+        response2b = test_view(request2)
+
+        self.assertEqual(response1a, "Success")
+        self.assertEqual(response1b, "Success")
+        self.assertEqual(response2a, "Success")
+        self.assertEqual(response2b, "Success")
+
+    def test_rate_limit_decorator_window_expiry(self):
+        """Test that rate limit window expires correctly."""
+
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # Make 2 requests to hit limit
+        test_view(request)
+        test_view(request)
+
+        # Third request should be blocked
+        response = test_view(request)
+        self.assertEqual(response.status_code, 429)
+
+        # Manually expire the cache (simulate time passing)
+        cache_key = f"rate_limit_{get_client_ip(request)}"
+        cache.delete(cache_key)
+
+        # Now requests should work again
+        response = test_view(request)
+        self.assertEqual(response, "Success")
+
+    def test_rate_limit_decorator_custom_key_prefix(self):
+        """Test rate limit decorator with custom key prefix."""
+
+        @rate_limit(max_attempts=2, window_minutes=1, key_prefix="custom_limit")
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # Make 2 requests to hit limit
+        test_view(request)
+        test_view(request)
+
+        # Third request should be blocked
+        response = test_view(request)
+        self.assertEqual(response.status_code, 429)
+
+        # Check that custom cache key was used
+        cache_key = f"custom_limit_{get_client_ip(request)}"
+        attempts = cache.get(cache_key, [])
+        self.assertEqual(len(attempts), 2)
+
+    def test_rate_limit_decorator_old_attempts_cleanup(self):
+        """Test that old attempts are cleaned up from cache."""
+
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # Make first request
+        test_view(request)
+
+        # Manually add old attempts to cache
+        cache_key = f"rate_limit_{get_client_ip(request)}"
+        old_time = time.time() - 2000  # 2000 seconds ago
+        cache.set(cache_key, [old_time, old_time], 3600)
+
+        # Make another request - should clean up old attempts
+        test_view(request)
+
+        # Check that old attempts were removed
+        attempts = cache.get(cache_key, [])
+        self.assertEqual(len(attempts), 1)  # Only current attempt
+
+        # Make third request - should still work because old attempts were cleaned
+        response = test_view(request)
+        self.assertEqual(response, "Success")
+
+    def test_rate_limit_decorator_multiple_decorators(self):
+        """Test rate limit decorator works with multiple decorators."""
+
+        def other_decorator(func):
+            def wrapper(request, *args, **kwargs):
+                result = func(request, *args, **kwargs)
+                # Check if result is an HttpResponse (from rate limiting)
+                if hasattr(result, "status_code"):
+                    return result
+                return f"Decorated: {result}"
+
+            return wrapper
+
+        @other_decorator
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # First request should succeed
+        response = test_view(request)
+        self.assertEqual(response, "Decorated: Success")
+
+        # Second request should succeed
+        response = test_view(request)
+        self.assertEqual(response, "Decorated: Success")
+
+        # Third request should be blocked
+        response = test_view(request)
+        self.assertEqual(response.status_code, 429)
+
+    def test_rate_limit_decorator_with_view_args_kwargs(self):
+        """Test rate limit decorator preserves view arguments."""
+
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def test_view(request, pk, category=None):
+            return f"Success: {pk}, {category}"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Test with positional and keyword arguments
+        response = test_view(request, pk=123, category="test")
+        self.assertEqual(response, "Success: 123, test")
+
+    def test_rate_limit_decorator_error_message_content(self):
+        """Test that error message contains correct information."""
+
+        @rate_limit(max_attempts=3, window_minutes=5)
+        def test_view(request):
+            return "Success"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # Make requests to hit limit
+        test_view(request)
+        test_view(request)
+        test_view(request)
+
+        # Fourth request should add error message
+        test_view(request)
+
+        # Check error message content
+        stored_messages = list(messages)
+        self.assertEqual(len(stored_messages), 1)
+        message = str(stored_messages[0])
+        self.assertIn("Too many attempts", message)
+        self.assertIn("5 minutes", message)
+
+
+class RateLimitingIntegrationTest(TestCase):
+    """Integration tests for rate limiting with authentication views."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.client = Client()
+        self.factory = RequestFactory()
+        self.user = UserFactory()
+
+        # Clear cache before each test
+        cache.clear()
+
+    def tearDown(self):
+        """Clean up after each test."""
+        cache.clear()
+
+    def test_rate_limiting_with_login_view(self):
+        """Test rate limiting integration with login view."""
+        # This test assumes the login view uses the rate_limit decorator
+        # We'll test the decorator behavior in a realistic scenario
+
+        @rate_limit(max_attempts=3, window_minutes=1)
+        def mock_login_view(request):
+            return "Login successful"
+
+        # Simulate failed login attempts
+        for i in range(3):
+            request = self.factory.get("/test/")
+            request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+            # Set up messages framework
+            setattr(request, "session", {})
+            messages = FallbackStorage(request)
+            setattr(request, "_messages", messages)
+
+            response = mock_login_view(request)
+            self.assertEqual(response, "Login successful")
+
+        # Fourth attempt should be blocked
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        response = mock_login_view(request)
+        self.assertEqual(response.status_code, 429)
+
+    def test_rate_limiting_with_registration_view(self):
+        """Test rate limiting integration with registration view."""
+
+        @rate_limit(max_attempts=2, window_minutes=1)
+        def mock_registration_view(request):
+            return "Registration successful"
+
+        # Simulate registration attempts
+        for i in range(2):
+            request = self.factory.get("/test/")
+            request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+            # Set up messages framework
+            setattr(request, "session", {})
+            messages = FallbackStorage(request)
+            setattr(request, "_messages", messages)
+
+            response = mock_registration_view(request)
+            self.assertEqual(response, "Registration successful")
+
+        # Third attempt should be blocked
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        response = mock_registration_view(request)
+        self.assertEqual(response.status_code, 429)
+
+    def test_rate_limiting_different_endpoints(self):
+        """Test that different endpoints have separate rate limits."""
+
+        @rate_limit(max_attempts=2, window_minutes=1, key_prefix="login")
+        def login_view(request):
+            return "Login"
+
+        @rate_limit(max_attempts=2, window_minutes=1, key_prefix="register")
+        def register_view(request):
+            return "Register"
+
+        request = self.factory.get("/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
+        # Set up messages framework
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        # Hit limit on login
+        login_view(request)
+        login_view(request)
+
+        # Register should still work
+        response = register_view(request)
+        self.assertEqual(response, "Register")
+
+        response = register_view(request)
+        self.assertEqual(response, "Register")
+
+        # Now register should be blocked
+        response = register_view(request)
+        self.assertEqual(response.status_code, 429)

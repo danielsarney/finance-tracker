@@ -3,8 +3,10 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from finance_tracker.rate_limiting import rate_limit
 
 
+@rate_limit(max_attempts=3, window_minutes=15, key_prefix="register")
 def register(request):
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
@@ -28,6 +30,7 @@ def register(request):
     return render(request, "accounts/register.html", {"form": form})
 
 
+@rate_limit(max_attempts=5, window_minutes=15, key_prefix="login")
 def user_login(request):
     if request.method == "POST":
         form = CustomAuthenticationForm(request.POST)
